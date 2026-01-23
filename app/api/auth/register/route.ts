@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email or username already exists' },
+        { error: 'Registration failed. Please try different credentials.' },
         { status: 409 }
       )
     }
