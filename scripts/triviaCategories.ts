@@ -218,7 +218,7 @@ export const triviaCategories = {
  * A leaf is any array or terminal string value
  */
 export function getLeafCategories(
-  obj: any,
+  obj: any = triviaCategories,
   path: string[] = []
 ): Array<{ path: string; items: string[] }> {
   const leaves: Array<{ path: string; items: string[] }> = [];
