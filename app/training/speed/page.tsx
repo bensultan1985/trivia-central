@@ -2,7 +2,7 @@ export default async function SpeedTrainingPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8 rounded-lg bg-blue-800 p-8 text-white shadow-lg">
+        <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
           <div className="flex items-center gap-4 mb-4">
             <span className="text-6xl">⚡</span>
             <div>

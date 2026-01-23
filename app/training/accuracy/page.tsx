@@ -2,7 +2,7 @@ export default async function AccuracyTrainingPage() {
   return (
     <div className="p-8">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8 rounded-lg bg-blue-800 p-8 text-white shadow-lg">
+        <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
           <div className="mb-4 flex items-center gap-4">
             <span className="text-6xl">🎯</span>
             <div>
