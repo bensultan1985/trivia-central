@@ -266,16 +266,16 @@ export default function TargetPracticePage() {
             </div>
 
             {/* Tips Panel */}
-            {showFeedback && (
+            {showFeedback && selectedAnswer !== null && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h3 className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-100">
-                  {questions[currentQuestionIndex].answers[selectedAnswer!]
+                  {questions[currentQuestionIndex].answers[selectedAnswer]
                     .isCorrect
                     ? "🎉 Correct!"
                     : "💡 Keep Practicing!"}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-3">
-                  {questions[currentQuestionIndex].answers[selectedAnswer!]
+                  {questions[currentQuestionIndex].answers[selectedAnswer]
                     .isCorrect
                     ? "Great job! You got it right!"
                     : "Don't worry - every mistake is a learning opportunity."}

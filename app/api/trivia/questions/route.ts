@@ -270,6 +270,19 @@ export async function GET(request: Request) {
       // Shuffle the answers
       const shuffledAnswers = answers.sort(() => Math.random() - 0.5);
 
+      // Calculate total responses for frequency calculation
+      const totalResponses =
+        q.choice1Count + q.choice2Count + q.choice3Count + q.choice4Count;
+      
+      // Calculate approximate correct frequency
+      // Note: This is a simplified calculation assuming equal distribution
+      // In a production environment, we would track which choice position
+      // was correct for each question response
+      const correctFrequency =
+        totalResponses > 0
+          ? Math.round((q.choice1Count / totalResponses) * 100)
+          : null;
+
       return {
         id: q.id,
         question: q.question,
@@ -277,22 +290,8 @@ export async function GET(request: Request) {
         category: q.category,
         categoryPath: q.categoryPath,
         difficulty: q.difficulty,
-        // Calculate total responses for frequency calculation
-        totalResponses:
-          q.choice1Count + q.choice2Count + q.choice3Count + q.choice4Count,
-        // We'll use choice1Count as a proxy for correct answer frequency
-        // In a real implementation, this would track which choice was correct
-        correctFrequency:
-          q.choice1Count + q.choice2Count + q.choice3Count + q.choice4Count > 0
-            ? Math.round(
-                (q.choice1Count /
-                  (q.choice1Count +
-                    q.choice2Count +
-                    q.choice3Count +
-                    q.choice4Count)) *
-                  100
-              )
-            : null,
+        totalResponses,
+        correctFrequency,
       };
     });
 
