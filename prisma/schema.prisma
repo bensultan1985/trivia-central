@@ -57,7 +57,8 @@ model TriviaQuestion {
   answerContext                String?  @db.Text
   tags                         String[] @default([])
   importance                   Int      @default(5)
-  commonKnowledgeUserDateRange String?
+  commonKnowledgeUserDateRange Json?    @db.JsonB
+  specialQuestion              Boolean  @default(false)
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
 }

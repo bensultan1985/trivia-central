@@ -12,12 +12,14 @@ This directory contains scripts for generating trivia questions using AI.
 ### Prerequisites
 
 1. Set up your environment variables:
+
    ```bash
    OPENAI_API_KEY=your_openai_api_key
    DATABASE_URL=your_database_connection_string
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -31,11 +33,13 @@ This directory contains scripts for generating trivia questions using AI.
 ### Generate Trivia Questions
 
 Generate 100 trivia questions (default):
+
 ```bash
 npm run generate-trivia
 ```
 
 Generate a custom number of questions:
+
 ```bash
 npx tsx scripts/generateTrivia.ts 50
 ```
@@ -76,6 +80,7 @@ pop-culture/
 ### Topic-Extremes Category
 
 The `topic-extremes` subcategory contains trivia about superlatives such as:
+
 - Biggest/smallest
 - Tallest/shortest
 - Longest/shortest
@@ -100,7 +105,7 @@ Each generated trivia question includes:
 - **answerContext**: Additional context about the answer
 - **tags**: Keywords associated with the trivia
 - **importance**: Rating 1-10 for likelihood of appearing on a trivia show
-- **commonKnowledgeUserDateRange**: Age range most likely to know the answer (e.g., "1950-1980")
+- **commonKnowledgeUserDateRange**: Birth-year range most likely to know the answer: `null`, `[earliestBirthYear]` (implies "present"), or `[earliestBirthYear, latestBirthYear]`
 
 ## How It Works
 
