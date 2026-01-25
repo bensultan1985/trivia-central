@@ -109,19 +109,22 @@ Each generated trivia question includes:
 
 ## How It Works
 
-1. The script runs a loop for the specified number of iterations (default: 100)
-2. Each iteration:
-   - Randomly selects a leaf category from the tree
-   - Sends a prompt to OpenAI's GPT-4 model
-   - Parses the AI-generated trivia question
-   - Saves the question to the database with all metadata
-3. Progress is logged to the console
-4. Final statistics are displayed at the end
+1. The script runs for the specified number of iterations (default: 100)
+2. It submits requests to OpenAI using the official Batch API in groups (default batch size: 100)
+3. For each batch:
+
+- Randomly selects leaf categories from the tree
+- Submits a JSONL batch job to OpenAI
+- Waits for completion and downloads the batch output file
+- Parses each generated trivia JSON and saves unique questions to the database
+- Refills missing questions (duplicates/invalids) up to a small retry limit
+
+4. Progress is logged to the console and final statistics are displayed at the end
 
 ## API Rate Limiting
 
-The script includes a 1-second delay between API calls to avoid rate limiting.
-Adjust the delay in `generateTrivia.ts` if needed.
+The generator uses OpenAI's Batch API, which is asynchronous and can take time to complete.
+The script polls until the batch finishes and then downloads results.
 
 ## Error Handling
 

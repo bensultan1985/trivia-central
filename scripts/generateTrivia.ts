@@ -33,6 +33,13 @@ interface TriviaQuestionData {
   commonKnowledgeUserDateRange?: number[] | null;
 }
 
+type BatchRequestMeta = {
+  customId: string;
+  categoryPath: string;
+  categoryItem: string;
+  attempt: number;
+};
+
 function normalizeBirthYearRange(value: unknown): number[] | null {
   if (value == null) return null;
   if (!Array.isArray(value)) return null;
@@ -113,33 +120,29 @@ async function questionExistsInDb(question: string): Promise<boolean> {
   return Boolean(existing);
 }
 
-/**
- * Generate a trivia question using OpenAI API
- */
-async function generateTriviaQuestion(
-  categoryPath: string,
-  categoryItem: string,
-  attempt: number = 1,
-): Promise<TriviaQuestionData | null> {
-  try {
-    const openaiApiKey =
-      process.env.OPENAI_API_KEY ?? process.env.openai_api_key;
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-    if (!openaiApiKey) {
-      console.error(
-        "Missing OpenAI API key. Set OPENAI_API_KEY (preferred) or openai_api_key in your env.",
-      );
-      return null;
-    }
+function getOpenAiApiKey(): string | null {
+  return process.env.OPENAI_API_KEY ?? process.env.openai_api_key ?? null;
+}
 
-    const leafKey =
-      categoryPath.split("/").filter(Boolean).pop() ?? categoryPath;
-    const isWildcardTopic = categoryItem.trim() === "**";
-    const topicPhrase = isWildcardTopic
-      ? `any topic related to "${leafKey}" (you choose a specific example)`
-      : `"${categoryItem}"`;
+function extractJsonFromModelContent(content: string): string {
+  const jsonMatch =
+    content.match(/```json\n([\s\S]*?)\n```/) ||
+    content.match(/```([\s\S]*?)```/);
+  return (jsonMatch ? jsonMatch[1] : content).trim();
+}
 
-    const prompt = `Generate a trivia question about ${topicPhrase} in the category "${categoryPath}".
+function buildPrompt(categoryPath: string, categoryItem: string): string {
+  const leafKey = categoryPath.split("/").filter(Boolean).pop() ?? categoryPath;
+  const isWildcardTopic = categoryItem.trim() === "**";
+  const topicPhrase = isWildcardTopic
+    ? `any topic related to "${leafKey}" (you choose a specific example)`
+    : `"${categoryItem}"`;
+
+  return `Generate a trivia question about ${topicPhrase} in the category "${categoryPath}".
 
 ${isWildcardTopic ? 'Important: "**" is a wildcard marker in our category list. Pick a concrete topic and do NOT mention "**" in the question or answers.' : ""}
 
@@ -170,9 +173,241 @@ Return a JSON object with this structure:
   "importance": 5,
   "commonKnowledgeUserDateRange": null
 }`;
+}
 
-    const presencePenalty = attempt >= 2 ? 1.0 : 0.6;
-    const frequencyPenalty = attempt >= 2 ? 0.7 : 0.2;
+function buildChatCompletionBody(prompt: string, attempt: number): object {
+  const presencePenalty = attempt >= 2 ? 1.0 : 0.6;
+  const frequencyPenalty = attempt >= 2 ? 0.7 : 0.2;
+
+  return {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a trivia question expert. Generate high-quality trivia questions with accurate information and credible sources. Always return valid JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.8,
+    presence_penalty: presencePenalty,
+    frequency_penalty: frequencyPenalty,
+    max_tokens: 1000,
+  };
+}
+
+function isValidTriviaData(value: any): value is TriviaQuestionData {
+  if (!value) return false;
+  if (typeof value.question !== "string" || value.question.trim() === "")
+    return false;
+  if (!Array.isArray(value.choices) || value.choices.length !== 4) return false;
+  if (typeof value.correctAnswerIndex !== "number") return false;
+  if (
+    !Number.isInteger(value.correctAnswerIndex) ||
+    value.correctAnswerIndex < 0 ||
+    value.correctAnswerIndex > 3
+  )
+    return false;
+  return true;
+}
+
+async function openaiFetchJson(
+  url: string,
+  init: RequestInit,
+): Promise<any | null> {
+  try {
+    const response = await fetch(url, init);
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      console.error(
+        `OpenAI API error: ${response.status} ${response.statusText}`,
+      );
+      if (text) console.error(text);
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("OpenAI request failed:", error);
+    return null;
+  }
+}
+
+async function uploadBatchInputFile(
+  openaiApiKey: string,
+  jsonlContent: string,
+): Promise<string | null> {
+  const form = new FormData();
+  const blob = new Blob([jsonlContent], { type: "application/jsonl" });
+
+  form.append("purpose", "batch");
+  // undici supports providing a filename as the 3rd argument
+  form.append("file", blob, "trivia-batch.jsonl");
+
+  const data = await openaiFetchJson("https://api.openai.com/v1/files", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openaiApiKey}`,
+    },
+    body: form,
+  });
+
+  return data?.id ?? null;
+}
+
+async function createBatchJob(
+  openaiApiKey: string,
+  inputFileId: string,
+): Promise<string | null> {
+  const data = await openaiFetchJson("https://api.openai.com/v1/batches", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${openaiApiKey}`,
+    },
+    body: JSON.stringify({
+      input_file_id: inputFileId,
+      endpoint: "/v1/chat/completions",
+      completion_window: "24h",
+      metadata: { source: "trivia-train/scripts/generateTrivia.ts" },
+    }),
+  });
+
+  return data?.id ?? null;
+}
+
+async function getBatchStatus(
+  openaiApiKey: string,
+  batchId: string,
+): Promise<any | null> {
+  return await openaiFetchJson(`https://api.openai.com/v1/batches/${batchId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${openaiApiKey}`,
+    },
+  });
+}
+
+async function fetchOpenAiFileContent(
+  openaiApiKey: string,
+  fileId: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://api.openai.com/v1/files/${fileId}/content`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${openaiApiKey}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      console.error(
+        `OpenAI file download error: ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Error downloading OpenAI file:", error);
+    return null;
+  }
+}
+
+async function submitBatchAndWaitForOutput(
+  openaiApiKey: string,
+  requests: BatchRequestMeta[],
+): Promise<{ batchId: string; outputJsonl: string | null } | null> {
+  const jsonl =
+    requests
+      .map((req) => {
+        const prompt = buildPrompt(req.categoryPath, req.categoryItem);
+        return JSON.stringify({
+          custom_id: req.customId,
+          method: "POST",
+          url: "/v1/chat/completions",
+          body: buildChatCompletionBody(prompt, req.attempt),
+        });
+      })
+      .join("\n") + "\n";
+
+  const inputFileId = await uploadBatchInputFile(openaiApiKey, jsonl);
+  if (!inputFileId) return null;
+
+  const batchId = await createBatchJob(openaiApiKey, inputFileId);
+  if (!batchId) return null;
+
+  console.log(`Submitted OpenAI batch: ${batchId}`);
+  console.log(`Waiting for batch completion (may take a while)...`);
+
+  // Poll until completed (Batch API is async and can take minutes+)
+  let delayMs = 2000;
+  for (;;) {
+    await sleep(delayMs);
+    delayMs = Math.min(10000, Math.round(delayMs * 1.4));
+
+    const status = await getBatchStatus(openaiApiKey, batchId);
+    if (!status) return { batchId, outputJsonl: null };
+
+    const state = status.status as string | undefined;
+    const completed = state === "completed";
+    const terminalFailure =
+      state === "failed" || state === "cancelled" || state === "expired";
+
+    if (!completed && !terminalFailure) {
+      process.stdout.write(`. (${state ?? "unknown"})`);
+      continue;
+    }
+
+    process.stdout.write("\n");
+
+    if (terminalFailure) {
+      console.error(`Batch ended with status: ${state}`);
+      const errorFileId = status.error_file_id as string | null | undefined;
+      if (errorFileId) {
+        const err = await fetchOpenAiFileContent(openaiApiKey, errorFileId);
+        if (err) console.error(err);
+      }
+      return { batchId, outputJsonl: null };
+    }
+
+    const outputFileId = status.output_file_id as string | null | undefined;
+    if (!outputFileId) {
+      console.error("Batch completed but no output_file_id was provided.");
+      return { batchId, outputJsonl: null };
+    }
+
+    const outputJsonl = await fetchOpenAiFileContent(
+      openaiApiKey,
+      outputFileId,
+    );
+    return { batchId, outputJsonl };
+  }
+}
+
+/**
+ * Generate a trivia question using OpenAI API
+ */
+async function generateTriviaQuestion(
+  categoryPath: string,
+  categoryItem: string,
+  attempt: number = 1,
+): Promise<TriviaQuestionData | null> {
+  try {
+    const openaiApiKey = getOpenAiApiKey();
+    if (!openaiApiKey) {
+      console.error(
+        "Missing OpenAI API key. Set OPENAI_API_KEY (preferred) or openai_api_key in your env.",
+      );
+      return null;
+    }
+
+    const prompt = buildPrompt(categoryPath, categoryItem);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -180,24 +415,7 @@ Return a JSON object with this structure:
         "Content-Type": "application/json",
         Authorization: `Bearer ${openaiApiKey}`,
       },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a trivia question expert. Generate high-quality trivia questions with accurate information and credible sources. Always return valid JSON.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.8,
-        presence_penalty: presencePenalty,
-        frequency_penalty: frequencyPenalty,
-        max_tokens: 1000,
-      }),
+      body: JSON.stringify(buildChatCompletionBody(prompt, attempt)),
     });
 
     if (!response.ok) {
@@ -210,27 +428,13 @@ Return a JSON object with this structure:
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Extract JSON from the response (handle markdown code blocks)
-    let jsonContent = content;
-    const jsonMatch =
-      content.match(/```json\n([\s\S]*?)\n```/) ||
-      content.match(/```([\s\S]*?)```/);
-    if (jsonMatch) {
-      jsonContent = jsonMatch[1];
-    }
-
-    const triviaData = JSON.parse(jsonContent);
+    const triviaData = JSON.parse(extractJsonFromModelContent(content));
 
     triviaData.commonKnowledgeUserDateRange = normalizeBirthYearRange(
       triviaData.commonKnowledgeUserDateRange,
     );
 
-    // Validate the response
-    if (
-      !triviaData.question ||
-      !Array.isArray(triviaData.choices) ||
-      triviaData.choices.length !== 4
-    ) {
+    if (!isValidTriviaData(triviaData)) {
       console.error("Invalid response format from OpenAI");
       return null;
     }
@@ -301,8 +505,22 @@ async function saveTriviaQuestion(
 async function generateTriviaQuestions(
   iterations: number = 100,
 ): Promise<void> {
+  const openaiApiKey = getOpenAiApiKey();
+  if (!openaiApiKey) {
+    console.error(
+      "Missing OpenAI API key. Set OPENAI_API_KEY (preferred) or openai_api_key in your env.",
+    );
+    return;
+  }
+
+  const batchSizeRaw = process.env.OPENAI_BATCH_SIZE ?? "100";
+  const batchSize = Math.max(
+    1,
+    Math.min(100, parseInt(batchSizeRaw, 10) || 10),
+  );
+
   console.log(
-    `Starting trivia question generation (${iterations} iterations)...`,
+    `Starting trivia question generation (${iterations} iterations) using OpenAI Batch API (batch size: ${batchSize})...`,
   );
 
   const seenFingerprints = new Set<string>();
@@ -311,58 +529,131 @@ async function generateTriviaQuestions(
   let successCount = 0;
   let failureCount = 0;
 
-  for (let i = 0; i < iterations; i++) {
-    console.log(`\n[${i + 1}/${iterations}] Generating trivia question...`);
+  for (let offset = 0; offset < iterations; offset += batchSize) {
+    const targetCount = Math.min(batchSize, iterations - offset);
+    console.log(
+      `\n[${offset + 1}-${offset + targetCount}/${iterations}] Generating trivia questions...`,
+    );
 
-    let savedThisIteration = false;
+    let remaining = targetCount;
+    let savedThisChunk = 0;
 
-    for (let attempt = 1; attempt <= maxAttemptsPerQuestion; attempt++) {
-      // Get a random category (re-pick on duplicate to reduce repeats)
-      const { path, item } = getRandomLeafCategory();
+    for (
+      let attempt = 1;
+      attempt <= maxAttemptsPerQuestion && remaining > 0;
+      attempt++
+    ) {
+      const requestMetas: BatchRequestMeta[] = [];
+      for (let i = 0; i < remaining; i++) {
+        const { path, item } = getRandomLeafCategory();
+        requestMetas.push({
+          customId: crypto.randomUUID(),
+          categoryPath: path,
+          categoryItem: item,
+          attempt,
+        });
+      }
+
       console.log(
-        `Category: ${path} -> ${item} (attempt ${attempt}/${maxAttemptsPerQuestion})`,
+        `Submitting batch for ${remaining} questions (attempt ${attempt}/${maxAttemptsPerQuestion})...`,
       );
 
-      const triviaData = await generateTriviaQuestion(path, item, attempt);
-      if (!triviaData) {
-        console.log("Failed to generate question");
+      const batchResult = await submitBatchAndWaitForOutput(
+        openaiApiKey,
+        requestMetas,
+      );
+      if (!batchResult?.outputJsonl) {
+        console.log("✗ Batch produced no output; retrying...");
         continue;
       }
 
-      const correctAnswer =
-        triviaData.choices[triviaData.correctAnswerIndex] ?? "";
-      const fingerprint = triviaFingerprint(triviaData.question, correctAnswer);
+      const metaById = new Map(
+        requestMetas.map((m) => [m.customId, m] as const),
+      );
+      const lines = batchResult.outputJsonl
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
 
-      if (seenFingerprints.has(fingerprint)) {
-        console.log("↻ Duplicate (same run) detected; retrying...");
-        continue;
-      }
+      let savedThisAttempt = 0;
 
-      if (await questionExistsInDb(triviaData.question)) {
-        console.log("↻ Duplicate (already in DB) detected; retrying...");
-        continue;
-      }
+      for (const line of lines) {
+        let parsed: any;
+        try {
+          parsed = JSON.parse(line);
+        } catch {
+          continue;
+        }
 
-      console.log(`Question: ${triviaData.question}`);
+        const customId = parsed?.custom_id as string | undefined;
+        const meta = customId ? metaById.get(customId) : undefined;
+        if (!meta) continue;
 
-      const saved = await saveTriviaQuestion(path, triviaData);
-      if (saved) {
+        if (parsed?.error) {
+          console.error(`Batch item error (${customId}):`, parsed.error);
+          continue;
+        }
+
+        const statusCode = parsed?.response?.status_code as number | undefined;
+        const body = parsed?.response?.body;
+        if (statusCode !== 200 || !body) {
+          console.error(`Batch item non-200 (${customId}): ${statusCode}`);
+          continue;
+        }
+
+        const content = body?.choices?.[0]?.message?.content;
+        if (typeof content !== "string") continue;
+
+        let triviaData: any;
+        try {
+          triviaData = JSON.parse(extractJsonFromModelContent(content));
+        } catch {
+          continue;
+        }
+
+        triviaData.commonKnowledgeUserDateRange = normalizeBirthYearRange(
+          triviaData.commonKnowledgeUserDateRange,
+        );
+
+        if (!isValidTriviaData(triviaData)) continue;
+
+        const correctAnswer =
+          triviaData.choices[triviaData.correctAnswerIndex] ?? "";
+        const fingerprint = triviaFingerprint(
+          triviaData.question,
+          correctAnswer,
+        );
+
+        if (seenFingerprints.has(fingerprint)) continue;
+        if (await questionExistsInDb(triviaData.question)) continue;
+
+        const saved = await saveTriviaQuestion(meta.categoryPath, triviaData);
+        if (!saved) continue;
+
         seenFingerprints.add(fingerprint);
-        console.log("✓ Successfully saved to database");
-        successCount++;
-        savedThisIteration = true;
-        break;
+        savedThisAttempt++;
+        console.log(`✓ Saved: ${triviaData.question}`);
       }
 
-      console.log("✗ Failed to save to database");
+      savedThisChunk += savedThisAttempt;
+      remaining = targetCount - savedThisChunk;
+
+      if (remaining > 0) {
+        console.log(
+          `↻ Need ${remaining} more unique questions for this chunk; retrying...`,
+        );
+      }
     }
 
-    if (!savedThisIteration) {
-      failureCount++;
-    }
+    successCount += savedThisChunk;
+    const failedThisChunk = targetCount - savedThisChunk;
+    failureCount += failedThisChunk;
 
-    // Add a small delay to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (failedThisChunk > 0) {
+      console.log(
+        `✗ Failed to generate ${failedThisChunk} questions in this chunk`,
+      );
+    }
   }
 
   console.log("\n" + "=".repeat(50));
