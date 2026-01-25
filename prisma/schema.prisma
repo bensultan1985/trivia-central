@@ -42,6 +42,11 @@ model TriviaQuestion {
   wrongAnswer1                 String   @db.Text
   wrongAnswer2                 String   @db.Text
   wrongAnswer3                 String   @db.Text
+  // 0 = none, 1 = wrongAnswer1, 2 = wrongAnswer2, 3 = wrongAnswer3
+  distractorChoice             Int      @default(0)
+  wrongAnswer1Context          String?  @db.Text
+  wrongAnswer2Context          String?  @db.Text
+  wrongAnswer3Context          String?  @db.Text
   category                     String
   categoryPath                 String?
   difficulty                   String

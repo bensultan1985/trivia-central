@@ -28,52 +28,99 @@ interface TriviaQuestionData {
   citations: string[];
   questionContext?: string;
   answerContext?: string;
+  // Optional distractor metadata:
+  // 0 = none, 1 = wrongAnswer1, 2 = wrongAnswer2, 3 = wrongAnswer3
+  distractorChoice?: number;
+  wrongAnswer1Context?: string | null;
+  wrongAnswer2Context?: string | null;
+  wrongAnswer3Context?: string | null;
   tags: string[];
   importance: number;
-  commonKnowledgeUserDateRange?: number[] | null;
+  commonKnowledgeUserDateRange?: unknown;
 }
+
+type GenerationOptions = {
+  includeDistractors: boolean;
+};
 
 type BatchRequestMeta = {
   customId: string;
+  slotId: string;
   categoryPath: string;
   categoryItem: string;
   attempt: number;
 };
 
-function normalizeBirthYearRange(value: unknown): number[] | null {
+type CommonKnowledgeUserDateRange = [null] | [number] | [number, number];
+
+function coerceYear(value: unknown): number | null {
   if (value == null) return null;
-  if (!Array.isArray(value)) return null;
-
-  const normalized = value
-    .map((v) => {
-      if (v == null) return null;
-      if (typeof v === "number")
-        return Number.isFinite(v) ? Math.trunc(v) : null;
-      if (typeof v === "string") {
-        const s = v.trim().toLowerCase();
-        if (s === "present" || s === "now" || s === "current") return "present";
-        const n = Number(s);
-        return Number.isFinite(n) ? Math.trunc(n) : null;
-      }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return null;
+    const n = Math.trunc(value);
+    return n >= 1 && n <= 9999 ? n : null;
+  }
+  if (typeof value === "string") {
+    const s = value.trim().toLowerCase();
+    if (!s) return null;
+    if (
+      s === "null" ||
+      s === "none" ||
+      s === "no" ||
+      s.includes("not common") ||
+      s.includes("not-common")
+    )
       return null;
-    })
-    .filter((v) => v !== null);
+    if (/^\d{1,4}$/.test(s)) {
+      const n = Number(s);
+      const year = Math.trunc(n);
+      return year >= 1 && year <= 9999 ? year : null;
+    }
+  }
+  return null;
+}
 
-  const earliest = normalized.find((v) => typeof v === "number") as
-    | number
-    | undefined;
-  if (earliest == null) return null;
+function normalizeCommonKnowledgeUserDateRange(
+  value: unknown,
+): CommonKnowledgeUserDateRange {
+  // Default (undetermined / "common knowledge" but no clear range): [1]
+  if (value == null) return [1];
 
-  // If the second value is explicitly "present", omit it (store only [earliest])
-  if (normalized.some((v) => v === "present")) return [earliest];
+  // If the model returns a non-array, treat it as a single year or sentinel.
+  if (!Array.isArray(value)) {
+    const s = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (s && (s === "null" || s === "none" || s.includes("not common")))
+      return [null];
+    const year = coerceYear(value);
+    return year != null ? [year] : [1];
+  }
 
-  const numericYears = normalized.filter(
-    (v): v is number => typeof v === "number",
-  );
-  if (numericYears.length <= 1) return [earliest];
+  // If explicitly [null], treat as "not common knowledge".
+  if (value.length === 1 && value[0] == null) return [null];
 
-  const latest = Math.max(...numericYears);
-  if (latest === earliest) return [earliest];
+  const a = value[0];
+  const b = value[1];
+
+  const yearA = coerceYear(a);
+  const yearB = coerceYear(b);
+
+  // If any element explicitly signals "not common knowledge", store [null].
+  const anyNullSentinel = value.some((v) => {
+    if (v == null) return true;
+    if (typeof v === "string") {
+      const s = v.trim().toLowerCase();
+      return s === "null" || s === "none" || s.includes("not common");
+    }
+    return false;
+  });
+
+  if (yearA == null && yearB == null) return anyNullSentinel ? [null] : [1];
+  if (yearA != null && yearB == null) return [yearA];
+  if (yearA == null && yearB != null) return [yearB];
+
+  const earliest = Math.min(yearA!, yearB!);
+  const latest = Math.max(yearA!, yearB!);
+  if (earliest === latest) return [earliest];
   return [earliest, latest];
 }
 
@@ -91,6 +138,20 @@ function triviaFingerprint(question: string, correctAnswer: string): string {
   const a = normalizeForDedupe(correctAnswer);
   const raw = `${q}|${a}`;
   return crypto.createHash("sha256").update(raw).digest("hex");
+}
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeDistractorChoice(value: unknown): 0 | 1 | 2 | 3 {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  const n = Math.trunc(value);
+  if (n === 1 || n === 2 || n === 3) return n;
+  return 0;
 }
 
 function escapeRegex(value: string): string {
@@ -135,12 +196,33 @@ function extractJsonFromModelContent(content: string): string {
   return (jsonMatch ? jsonMatch[1] : content).trim();
 }
 
-function buildPrompt(categoryPath: string, categoryItem: string): string {
+function buildPrompt(
+  categoryPath: string,
+  categoryItem: string,
+  options: GenerationOptions,
+): string {
   const leafKey = categoryPath.split("/").filter(Boolean).pop() ?? categoryPath;
   const isWildcardTopic = categoryItem.trim() === "**";
   const topicPhrase = isWildcardTopic
     ? `any topic related to "${leafKey}" (you choose a specific example)`
     : `"${categoryItem}"`;
+
+  const distractorSection = options.includeDistractors
+    ? `
+
+Optional (encouraged, but not required):
+- Identify one wrong answer as a plausible-but-incorrect "distractor".
+  - Use distractorChoice as an integer 0-3 where:
+    - 0 = no distractor
+    - 1 = wrongAnswer1
+    - 2 = wrongAnswer2
+    - 3 = wrongAnswer3
+  - Important: wrongAnswer1/2/3 are the three incorrect answers after removing the correct answer from the choices array, preserving order.
+- If you can briefly explain why a wrong answer is plausible-but-wrong, provide:
+  - wrongAnswer1Context / wrongAnswer2Context / wrongAnswer3Context (strings)
+  - If not available, use null or omit.
+`
+    : "";
 
   return `Generate a trivia question about ${topicPhrase} in the category "${categoryPath}".
 
@@ -155,11 +237,15 @@ Requirements:
 6. Rate the importance (1-10) based on likelihood it would appear on a trivia show (1=unlikely, 10=very likely)
 7. If found in actual game shows, importance should be above 8
 8. Provide relevant tags/keywords
-9. If applicable and reasonably certain, provide the likely birth-year range of people who would know this (NOT age). Otherwise null.
-  - Use either null OR an array of 1-2 integers
-  - If the latest end is effectively "present", OMIT it and return only [earliestBirthYear]
-  - Do NOT include nulls in arrays
+9. Provide commonKnowledgeUserDateRange as a JSON array describing who (by USA birth year) would commonly know this.
+  - If NOT common knowledge at all, return: [null]
+  - If common knowledge but you can't estimate a range, return: [1]
+  - If common knowledge for a continuing cohort into the future, return: [earliestBirthYear]
+  - If common knowledge for a bounded cohort, return: [earliestBirthYear, latestBirthYear]
+  - Birth years should be 4-digit years when possible, integers only
+  - Do NOT include nulls except the special case [null]
 10. If helpful, provide additional context about the question or answer
+${distractorSection}
 
 Return a JSON object with this structure:
 {
@@ -169,9 +255,13 @@ Return a JSON object with this structure:
   "citations": ["source1", "source2"],
   "questionContext": "optional context about the question",
   "answerContext": "optional context about the answer",
+  "distractorChoice": 0,
+  "wrongAnswer1Context": null,
+  "wrongAnswer2Context": null,
+  "wrongAnswer3Context": null,
   "tags": ["tag1", "tag2"],
   "importance": 5,
-  "commonKnowledgeUserDateRange": null
+  "commonKnowledgeUserDateRange": [1]
 }`;
 }
 
@@ -211,6 +301,10 @@ function isValidTriviaData(value: any): value is TriviaQuestionData {
     value.correctAnswerIndex > 3
   )
     return false;
+  if (typeof value.distractorChoice === "number") {
+    const n = Math.trunc(value.distractorChoice);
+    if (!(n === 0 || n === 1 || n === 2 || n === 3)) return false;
+  }
   return true;
 }
 
@@ -322,11 +416,12 @@ async function fetchOpenAiFileContent(
 async function submitBatchAndWaitForOutput(
   openaiApiKey: string,
   requests: BatchRequestMeta[],
+  options: GenerationOptions,
 ): Promise<{ batchId: string; outputJsonl: string | null } | null> {
   const jsonl =
     requests
       .map((req) => {
-        const prompt = buildPrompt(req.categoryPath, req.categoryItem);
+        const prompt = buildPrompt(req.categoryPath, req.categoryItem, options);
         return JSON.stringify({
           custom_id: req.customId,
           method: "POST",
@@ -397,6 +492,7 @@ async function generateTriviaQuestion(
   categoryPath: string,
   categoryItem: string,
   attempt: number = 1,
+  options: GenerationOptions = { includeDistractors: false },
 ): Promise<TriviaQuestionData | null> {
   try {
     const openaiApiKey = getOpenAiApiKey();
@@ -407,7 +503,7 @@ async function generateTriviaQuestion(
       return null;
     }
 
-    const prompt = buildPrompt(categoryPath, categoryItem);
+    const prompt = buildPrompt(categoryPath, categoryItem, options);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -430,9 +526,10 @@ async function generateTriviaQuestion(
 
     const triviaData = JSON.parse(extractJsonFromModelContent(content));
 
-    triviaData.commonKnowledgeUserDateRange = normalizeBirthYearRange(
-      triviaData.commonKnowledgeUserDateRange,
-    );
+    triviaData.commonKnowledgeUserDateRange =
+      normalizeCommonKnowledgeUserDateRange(
+        triviaData.commonKnowledgeUserDateRange,
+      );
 
     if (!isValidTriviaData(triviaData)) {
       console.error("Invalid response format from OpenAI");
@@ -459,6 +556,10 @@ async function saveTriviaQuestion(
       (_, index) => index !== triviaData.correctAnswerIndex,
     );
 
+    const distractorChoice = normalizeDistractorChoice(
+      triviaData.distractorChoice,
+    );
+
     await prisma.triviaQuestion.create({
       data: {
         question: triviaData.question,
@@ -467,6 +568,16 @@ async function saveTriviaQuestion(
         wrongAnswer1: wrongAnswers[0] || "",
         wrongAnswer2: wrongAnswers[1] || "",
         wrongAnswer3: wrongAnswers[2] || "",
+        distractorChoice,
+        wrongAnswer1Context: normalizeOptionalText(
+          triviaData.wrongAnswer1Context,
+        ),
+        wrongAnswer2Context: normalizeOptionalText(
+          triviaData.wrongAnswer2Context,
+        ),
+        wrongAnswer3Context: normalizeOptionalText(
+          triviaData.wrongAnswer3Context,
+        ),
         category: categoryPath.split("/")[0], // Top-level category
         categoryPath: categoryPath,
         difficulty: "medium", // Default difficulty
@@ -482,13 +593,10 @@ async function saveTriviaQuestion(
         answerContext: triviaData.answerContext || null,
         tags: triviaData.tags || [],
         importance: triviaData.importance || 5,
-        ...(Array.isArray(triviaData.commonKnowledgeUserDateRange) &&
-        triviaData.commonKnowledgeUserDateRange.length > 0
-          ? {
-              commonKnowledgeUserDateRange:
-                triviaData.commonKnowledgeUserDateRange,
-            }
-          : {}),
+        commonKnowledgeUserDateRange:
+          normalizeCommonKnowledgeUserDateRange(
+            triviaData.commonKnowledgeUserDateRange,
+          ),
       },
     });
 
@@ -504,6 +612,7 @@ async function saveTriviaQuestion(
  */
 async function generateTriviaQuestions(
   iterations: number = 100,
+  options: GenerationOptions = { includeDistractors: false },
 ): Promise<void> {
   const openaiApiKey = getOpenAiApiKey();
   if (!openaiApiKey) {
@@ -535,32 +644,74 @@ async function generateTriviaQuestions(
       `\n[${offset + 1}-${offset + targetCount}/${iterations}] Generating trivia questions...`,
     );
 
-    let remaining = targetCount;
+    type Slot = {
+      slotId: string;
+      categoryPath: string;
+      categoryItem: string;
+    };
+
+    const slots: Slot[] = Array.from({ length: targetCount }, () => {
+      const { path, item } = getRandomLeafCategory();
+      return {
+        slotId: crypto.randomUUID(),
+        categoryPath: path,
+        categoryItem: item,
+      };
+    });
+
+    let pendingSlots: Slot[] = [...slots];
     let savedThisChunk = 0;
 
     for (
       let attempt = 1;
-      attempt <= maxAttemptsPerQuestion && remaining > 0;
+      attempt <= maxAttemptsPerQuestion && pendingSlots.length > 0;
       attempt++
     ) {
+      if (attempt > 1) {
+        console.log(
+          `Retry attempt ${attempt}/${maxAttemptsPerQuestion} for ${pendingSlots.length} pending questions. Category paths:`,
+        );
+        for (const slot of pendingSlots) {
+          console.log(`- ${slot.categoryPath}`);
+        }
+      }
+
+      // On the 3rd attempt and beyond, pick a different category path at random for each pending slot
+      if (attempt >= 3) {
+        pendingSlots = pendingSlots.map((slot) => {
+          let next = getRandomLeafCategory();
+          let guard = 0;
+          while (next.path === slot.categoryPath && guard < 10) {
+            next = getRandomLeafCategory();
+            guard++;
+          }
+          return {
+            ...slot,
+            categoryPath: next.path,
+            categoryItem: next.item,
+          };
+        });
+      }
+
       const requestMetas: BatchRequestMeta[] = [];
-      for (let i = 0; i < remaining; i++) {
-        const { path, item } = getRandomLeafCategory();
+      for (const slot of pendingSlots) {
         requestMetas.push({
           customId: crypto.randomUUID(),
-          categoryPath: path,
-          categoryItem: item,
+          slotId: slot.slotId,
+          categoryPath: slot.categoryPath,
+          categoryItem: slot.categoryItem,
           attempt,
         });
       }
 
       console.log(
-        `Submitting batch for ${remaining} questions (attempt ${attempt}/${maxAttemptsPerQuestion})...`,
+        `Submitting batch for ${pendingSlots.length} questions (attempt ${attempt}/${maxAttemptsPerQuestion})...`,
       );
 
       const batchResult = await submitBatchAndWaitForOutput(
         openaiApiKey,
         requestMetas,
+        options,
       );
       if (!batchResult?.outputJsonl) {
         console.log("✗ Batch produced no output; retrying...");
@@ -611,8 +762,22 @@ async function generateTriviaQuestions(
           continue;
         }
 
-        triviaData.commonKnowledgeUserDateRange = normalizeBirthYearRange(
-          triviaData.commonKnowledgeUserDateRange,
+        triviaData.commonKnowledgeUserDateRange =
+          normalizeCommonKnowledgeUserDateRange(
+            triviaData.commonKnowledgeUserDateRange,
+          );
+
+        triviaData.distractorChoice = normalizeDistractorChoice(
+          triviaData.distractorChoice,
+        );
+        triviaData.wrongAnswer1Context = normalizeOptionalText(
+          triviaData.wrongAnswer1Context,
+        );
+        triviaData.wrongAnswer2Context = normalizeOptionalText(
+          triviaData.wrongAnswer2Context,
+        );
+        triviaData.wrongAnswer3Context = normalizeOptionalText(
+          triviaData.wrongAnswer3Context,
         );
 
         if (!isValidTriviaData(triviaData)) continue;
@@ -632,15 +797,15 @@ async function generateTriviaQuestions(
 
         seenFingerprints.add(fingerprint);
         savedThisAttempt++;
-        console.log(`✓ Saved: ${triviaData.question}`);
+        console.log(`✓ Saved (${meta.categoryPath}): ${triviaData.question}`);
       }
 
       savedThisChunk += savedThisAttempt;
-      remaining = targetCount - savedThisChunk;
+      pendingSlots = pendingSlots.slice(savedThisAttempt);
 
-      if (remaining > 0) {
+      if (pendingSlots.length > 0) {
         console.log(
-          `↻ Need ${remaining} more unique questions for this chunk; retrying...`,
+          `↻ Need ${pendingSlots.length} more unique questions for this chunk; retrying...`,
         );
       }
     }
@@ -668,14 +833,20 @@ async function generateTriviaQuestions(
  */
 async function main() {
   try {
-    // Get number of iterations from command line or default to 100
-    const iterations = parseInt(process.argv[2] || "100", 10);
+    const args = process.argv.slice(2);
+    const includeDistractors =
+      args.includes("--distractors") || args.includes("--with-distractors");
+
+    const firstNumeric = args.find((a) => /^\d+$/.test(a));
+    const iterations = parseInt(firstNumeric ?? "100", 10);
+
+    const options: GenerationOptions = { includeDistractors };
 
     if (isNaN(iterations) || iterations < 1) {
       console.error("Invalid number of iterations. Using default: 100");
-      await generateTriviaQuestions(100);
+      await generateTriviaQuestions(100, options);
     } else {
-      await generateTriviaQuestions(iterations);
+      await generateTriviaQuestions(iterations, options);
     }
   } catch (error) {
     console.error("Fatal error:", error);
