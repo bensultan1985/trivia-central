@@ -44,6 +44,12 @@ Generate a custom number of questions:
 npx tsx scripts/generateTrivia.ts 50
 ```
 
+Generate questions and (optionally) ask the model for distractor metadata + wrong-answer context:
+
+```bash
+npx tsx scripts/generateTrivia.ts 50 --distractors
+```
+
 ## Category Structure
 
 The trivia categories are organized in a hierarchical tree structure:
