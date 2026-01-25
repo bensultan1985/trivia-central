@@ -2097,8 +2097,21 @@ export const triviaCategories = {
       ],
     },
     "us-history": {
-      presidents: ["presidents"],
+      figures: ["presidents", "movement leaders", "famous public servants"],
       events: ["Louisiana Purchase"],
+      civics: [
+        "constitution",
+        "bill of rights",
+        "branches of government",
+        "**",
+      ],
+    },
+    mythology: {
+      greek: ["gods", "heroes", "**"],
+      roman: ["gods", "heroes", "**"],
+      norse: ["gods", "heroes", "**"],
+      egyptian: ["gods", "heroes", "**"],
+      hindu: ["gods", "heroes", "**"],
     },
   },
 
@@ -2120,7 +2133,18 @@ export const triviaCategories = {
       "Stephen Hawking",
     ],
   },
-
+  technology: {
+    inventions: ["**"],
+    inventors: ["**"],
+    "tech-companies": ["**"],
+  },
+  products: {
+    brands: ["**"],
+    gadgets: ["**"],
+    toys: ["**"],
+    household: ["**"],
+    industrial: ["**"],
+  },
   literature: {
     "classic-literature": {
       authors: [
@@ -2156,7 +2180,40 @@ export const triviaCategories = {
     poetry: ["Famous poets", "Poetry styles", "Notable poems"],
     awards: ["Nobel Prize in Literature", "Pulitzer Prize"],
   },
-
+  art: {
+    "art-movements": [
+      "Renaissance",
+      "Baroque",
+      "Impressionism",
+      "Cubism",
+      "Surrealism",
+    ],
+    "famous-artists": [
+      "Leonardo da Vinci",
+      "Vincent van Gogh",
+      "Pablo Picasso",
+      "Claude Monet",
+      "Frida Kahlo",
+      "Salvador Dalí",
+      "Andy Warhol",
+      "Michelangelo",
+      "Rembrandt",
+      "**",
+    ],
+    "art-forms": ["Painting", "Sculpture", "Photography", "Digital Art"],
+    museums: ["Louvre", "Metropolitan Museum of Art", "Tate Modern", "Uffizi"],
+    dance: [
+      "Ballet",
+      "Hip Hop",
+      "Contemporary",
+      "Salsa",
+      "Tap Dance",
+      "Square Dance",
+      "**",
+    ],
+    performance: ["Theater", "Opera", "Circus Arts", "**"],
+  },
+  language: ["vocabulary", "idiom", "sayings"],
   "food-and-drink": {
     "world-cuisines": [
       "Italian",
@@ -2166,6 +2223,7 @@ export const triviaCategories = {
       "Mexican",
       "Indian",
     ],
+    "grocery-products": ["cereal", "**"],
     beverages: ["Coffee", "Tea", "Wine", "Beer", "Cocktails"],
     "famous-chefs": [
       "Gordon Ramsay",
@@ -2174,7 +2232,6 @@ export const triviaCategories = {
       "Wolfgang Puck",
     ],
   },
-
   "pop-culture": {
     celebrities: [
       "Movie stars",
@@ -2182,7 +2239,13 @@ export const triviaCategories = {
       "TV personalities",
       "Social media influencers",
     ],
-    trends: ["Fashion trends", "Viral moments", "Internet memes"],
+    trends: [
+      "Fashion trends",
+      "Viral moments",
+      "Internet memes",
+      "fads",
+      "dance trends",
+    ],
   },
 };
 
