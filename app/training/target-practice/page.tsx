@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 interface Answer {
   text: string;
   isCorrect: boolean;
+  choiceKey: 1 | 2 | 3 | 4;
 }
 
 interface Question {
@@ -14,7 +15,7 @@ interface Question {
   category: string;
   categoryPath: string | null;
   difficulty: string;
-  totalResponses: number;
+  engagement: number;
   correctFrequency: number | null;
 }
 
@@ -25,15 +26,25 @@ interface GameStats {
   percentCorrect: number;
 }
 
+interface IntuitionStats {
+  used: number;
+  correct: number;
+}
+
 export default function TargetPracticePage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [totalGuessActive, setTotalGuessActive] = useState(false);
   const [gameStats, setGameStats] = useState<GameStats>({
     correct: 0,
     incorrect: 0,
     total: 0,
     percentCorrect: 0,
+  });
+  const [intuitionStats, setIntuitionStats] = useState<IntuitionStats>({
+    used: 0,
+    correct: 0,
   });
   const [loading, setLoading] = useState(true);
   const [gameFinished, setGameFinished] = useState(false);
@@ -56,14 +67,40 @@ export default function TargetPracticePage() {
     }
   };
 
+  const recordAnswer = async (questionId: string, choiceKey: 1 | 2 | 3 | 4) => {
+    try {
+      await fetch("/api/trivia/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId, choiceKey }),
+      });
+    } catch (error) {
+      console.warn("Failed to record answer:", error);
+    }
+  };
+
   const handleAnswerClick = (answerIndex: number) => {
     if (selectedAnswer !== null) return; // Already answered
 
     setSelectedAnswer(answerIndex);
     setShowFeedback(true);
 
-    const isCorrect = questions[currentQuestionIndex].answers[answerIndex].isCorrect;
-    
+    const selected = questions[currentQuestionIndex].answers[answerIndex];
+    const isCorrect = selected.isCorrect;
+
+    const wasTotalGuess = totalGuessActive;
+    setTotalGuessActive(false);
+
+    if (wasTotalGuess) {
+      setIntuitionStats((prev) => ({
+        used: prev.used + 1,
+        correct: prev.correct + (isCorrect ? 1 : 0),
+      }));
+    }
+
+    // Fire-and-forget DB update (engagement + choice count)
+    void recordAnswer(questions[currentQuestionIndex].id, selected.choiceKey);
+
     // Update stats
     setGameStats((prev) => {
       const newCorrect = prev.correct + (isCorrect ? 1 : 0);
@@ -83,6 +120,7 @@ export default function TargetPracticePage() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
+      setTotalGuessActive(false);
     } else {
       setGameFinished(true);
     }
@@ -91,7 +129,9 @@ export default function TargetPracticePage() {
   const handlePlayAgain = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
+    setTotalGuessActive(false);
     setGameStats({ correct: 0, incorrect: 0, total: 0, percentCorrect: 0 });
+    setIntuitionStats({ used: 0, correct: 0 });
     setGameFinished(false);
     setShowFeedback(false);
     fetchQuestions();
@@ -106,6 +146,11 @@ export default function TargetPracticePage() {
   }
 
   if (gameFinished) {
+    const intuitionScore =
+      intuitionStats.used > 0
+        ? Math.round((intuitionStats.correct / intuitionStats.used) * 100)
+        : null;
+
     return (
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
@@ -114,7 +159,9 @@ export default function TargetPracticePage() {
               <span className="text-6xl">🎯</span>
               <div>
                 <h1 className="text-4xl font-bold">Game Complete!</h1>
-                <p className="mt-2 text-white/90">Great job on completing the round!</p>
+                <p className="mt-2 text-white/90">
+                  Great job on completing the round!
+                </p>
               </div>
             </div>
           </div>
@@ -123,7 +170,7 @@ export default function TargetPracticePage() {
             <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">
               Final Stats
             </h2>
-            
+
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-6 text-center">
                 <div className="text-4xl font-bold text-green-600 dark:text-green-400">
@@ -153,6 +200,22 @@ export default function TargetPracticePage() {
               </div>
             </div>
 
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center mb-8 border border-gray-200 dark:border-gray-700">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Intuition Score
+              </div>
+              <div className="mt-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
+                {intuitionScore === null ? "N/A" : `${intuitionScore}%`}
+              </div>
+              <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {intuitionScore === null
+                  ? "Use Total Guess at least once to calculate this."
+                  : `Based on ${intuitionStats.used} total guess${
+                      intuitionStats.used === 1 ? "" : "es"
+                    } (${intuitionStats.correct} correct).`}
+              </div>
+            </div>
+
             <div className="text-center">
               <button
                 onClick={handlePlayAgain}
@@ -170,10 +233,13 @@ export default function TargetPracticePage() {
   const currentQuestion = questions[currentQuestionIndex];
   if (!currentQuestion) return null;
 
-  // Extract the main category (level 1)
-  const mainCategory = currentQuestion.categoryPath
-    ? currentQuestion.categoryPath.split(">")[0].trim()
-    : currentQuestion.category;
+  // Top-level category (geography, media, sports, etc.)
+  const topLevelCategory = currentQuestion.category;
+
+  const intuitionScore =
+    intuitionStats.used > 0
+      ? Math.round((intuitionStats.correct / intuitionStats.used) * 100)
+      : null;
 
   return (
     <div className="p-8">
@@ -191,7 +257,9 @@ export default function TargetPracticePage() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">{gameStats.percentCorrect}%</div>
+              <div className="text-2xl font-bold">
+                {gameStats.percentCorrect}%
+              </div>
               <div className="text-sm text-white/90">Accuracy</div>
             </div>
           </div>
@@ -210,7 +278,7 @@ export default function TargetPracticePage() {
                 {currentQuestion.answers.map((answer, index) => {
                   const isSelected = selectedAnswer === index;
                   const isCorrect = answer.isCorrect;
-                  
+
                   let buttonClasses =
                     "w-full text-left p-4 rounded-lg border-2 transition-all font-medium ";
 
@@ -251,6 +319,27 @@ export default function TargetPracticePage() {
                 })}
               </div>
 
+              {selectedAnswer === null && (
+                <div className="mt-5">
+                  <div className="mb-3 rounded-lg bg-blue-50 p-3 text-sm text-blue-900/80 dark:bg-blue-950/30 dark:text-blue-100/80">
+                    If you have no clue about the answer, click 'Total Guess'
+                    and then answer. This will be part of your "intuition
+                    score".
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTotalGuessActive((v) => !v)}
+                    className={`w-full rounded-lg border-2 px-4 py-3 font-bold transition-colors ${
+                      totalGuessActive
+                        ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+                        : "border-gray-300 bg-white text-gray-800 hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    Total Guess{totalGuessActive ? " (On)" : ""}
+                  </button>
+                </div>
+              )}
+
               {showFeedback && (
                 <div className="mt-6">
                   <button
@@ -282,7 +371,7 @@ export default function TargetPracticePage() {
                 </p>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   <p>
-                    <strong>Category:</strong> {mainCategory}
+                    <strong>Category:</strong> {topLevelCategory}
                   </p>
                   <p>
                     <strong>Difficulty:</strong> {currentQuestion.difficulty}
@@ -330,33 +419,47 @@ export default function TargetPracticePage() {
                   </div>
                 </div>
 
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Intuition Score
+                    </span>
+                    <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                      {intuitionScore === null ? "N/A" : `${intuitionScore}%`}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {intuitionScore === null
+                      ? ""
+                      : `Based on ${intuitionStats.used} total guess${
+                          intuitionStats.used === 1 ? "" : "es"
+                        }.`}
+                  </div>
+                </div>
+
                 {showFeedback && (
                   <>
                     <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
                       <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Current Question
+                        Question Details
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                         <p>
-                          <strong>Category:</strong> {mainCategory}
+                          <strong>Category:</strong> {topLevelCategory}
                         </p>
+                        <p>
+                          <strong>Engagement:</strong>{" "}
+                          {currentQuestion.engagement}
+                        </p>
+                        {currentQuestion.engagement > 4 &&
+                          currentQuestion.correctFrequency !== null && (
+                            <p>
+                              <strong>Players correct:</strong>{" "}
+                              {currentQuestion.correctFrequency}%
+                            </p>
+                          )}
                       </div>
                     </div>
-
-                    {currentQuestion.totalResponses >= 5 &&
-                      currentQuestion.correctFrequency !== null && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                            Player Success Rate
-                          </div>
-                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                            {currentQuestion.correctFrequency}%
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            Based on {currentQuestion.totalResponses} responses
-                          </div>
-                        </div>
-                      )}
                   </>
                 )}
               </div>

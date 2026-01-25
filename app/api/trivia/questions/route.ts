@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Mock questions for testing when database is not available
 const mockQuestions = [
@@ -238,7 +236,7 @@ export async function GET(request: Request) {
     const count = parseInt(searchParams.get("count") || "15");
 
     let questions;
-    
+
     try {
       // Try to get random questions from the database
       questions = await prisma.$queryRaw<any[]>`
@@ -246,7 +244,7 @@ export async function GET(request: Request) {
         ORDER BY RANDOM()
         LIMIT ${count}
       `;
-      
+
       // If no questions in database, use mock data
       if (!questions || questions.length === 0) {
         questions = mockQuestions.slice(0, count);
@@ -259,27 +257,32 @@ export async function GET(request: Request) {
 
     // Transform questions to include shuffled answers
     const transformedQuestions = questions.map((q) => {
-      // Create an array of all answers with their identifiers
+      // We count selections by answer identity (not on-screen position):
+      // 1 = correctAnswer, 2 = wrongAnswer1, 3 = wrongAnswer2, 4 = wrongAnswer3
       const answers = [
-        { text: q.correctAnswer, isCorrect: true },
-        { text: q.wrongAnswer1, isCorrect: false },
-        { text: q.wrongAnswer2, isCorrect: false },
-        { text: q.wrongAnswer3, isCorrect: false },
+        { text: q.correctAnswer, isCorrect: true, choiceKey: 1 },
+        { text: q.wrongAnswer1, isCorrect: false, choiceKey: 2 },
+        { text: q.wrongAnswer2, isCorrect: false, choiceKey: 3 },
+        { text: q.wrongAnswer3, isCorrect: false, choiceKey: 4 },
       ];
 
-      // Shuffle the answers
-      const shuffledAnswers = answers.sort(() => Math.random() - 0.5);
+      // Shuffle the answers (Fisher–Yates)
+      const shuffledAnswers = [...answers];
+      for (let i = shuffledAnswers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledAnswers[i], shuffledAnswers[j]] = [
+          shuffledAnswers[j],
+          shuffledAnswers[i],
+        ];
+      }
 
-      // Calculate total responses for frequency calculation
       const totalResponses =
-        q.choice1Count + q.choice2Count + q.choice3Count + q.choice4Count;
-      
-      // Calculate approximate correct frequency
-      // Note: This is a simplified calculation assuming equal distribution
-      // In a production environment, we would track which choice position
-      // was correct for each question response
+        typeof q.engagement === "number"
+          ? q.engagement
+          : q.choice1Count + q.choice2Count + q.choice3Count + q.choice4Count;
+
       const correctFrequency =
-        totalResponses > 0
+        totalResponses >= 5
           ? Math.round((q.choice1Count / totalResponses) * 100)
           : null;
 
@@ -290,7 +293,7 @@ export async function GET(request: Request) {
         category: q.category,
         categoryPath: q.categoryPath,
         difficulty: q.difficulty,
-        totalResponses,
+        engagement: totalResponses,
         correctFrequency,
       };
     });
@@ -300,7 +303,7 @@ export async function GET(request: Request) {
     console.error("Error fetching trivia questions:", error);
     return NextResponse.json(
       { error: "Failed to fetch questions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
