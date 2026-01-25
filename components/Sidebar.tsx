@@ -10,8 +10,9 @@ export default function Sidebar() {
 
   const navItems = [
     { href: "/", label: "Home", icon: "🏠" },
+    { href: "/training/target-practice", label: "Target Practice", icon: "🎯" },
     { href: "/training/speed", label: "Speed Training", icon: "⚡" },
-    { href: "/training/accuracy", label: "Accuracy Training", icon: "🎯" },
+    { href: "/training/accuracy", label: "Accuracy Training", icon: "✓" },
     { href: "/training/category", label: "Category Training", icon: "📚" },
   ];
 

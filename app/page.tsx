@@ -48,6 +48,20 @@ export default async function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
+          <Link href="/training/target-practice" className="block md:col-span-3">
+            <div className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg p-8 text-white transition-transform hover:scale-[1.02]">
+              <div className="flex items-center gap-4">
+                <div className="text-6xl">🎯</div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">Target Practice</h3>
+                  <p className="text-base opacity-90">
+                    Master multiple choice questions with our interactive 15-question game. Track your progress and improve your accuracy!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
           <Link href="/training/speed" className="block">
             <div className="rounded-lg bg-blue-700 shadow-lg p-6 text-white transition-transform hover:scale-[1.02]">
               <div className="text-4xl mb-3">⚡</div>
@@ -60,7 +74,7 @@ export default async function HomePage() {
 
           <Link href="/training/accuracy" className="block">
             <div className="rounded-lg bg-blue-600 shadow-lg p-6 text-white transition-transform hover:scale-[1.02]">
-              <div className="text-4xl mb-3">🎯</div>
+              <div className="text-4xl mb-3">✓</div>
               <h3 className="text-xl font-bold mb-2">Accuracy Training</h3>
               <p className="text-sm opacity-90">
                 Focus on getting every answer right
