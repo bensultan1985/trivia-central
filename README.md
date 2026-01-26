@@ -22,6 +22,18 @@ A game show and trivia training app for people who want to win.
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+- Clerk account (free at https://clerk.com)
+
+### Quick Start
+
+**New to this project?** Follow the [Quick Start Guide](QUICK_START.md) for a step-by-step setup (15-20 minutes).
+
+### Detailed Setup
+
 ### Tailwind note
 
 This project uses Tailwind v4. Global styles are loaded via `@import "tailwindcss";` in `app/globals.css` (not the older `@tailwind base/components/utilities` directives).
@@ -30,6 +42,7 @@ This project uses Tailwind v4. Global styles are loaded via `@import "tailwindcs
 
 - Node.js 18+
 - PostgreSQL database
+- Clerk account (free at https://clerk.com)
 
 ### Installation
 
@@ -47,7 +60,7 @@ npm install
 ```
 
 3. Set up your environment variables:
-   Create a `.env` file in the root directory:
+   Create a `.env.local` file in the root directory:
 
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/trivia_train"
@@ -57,6 +70,8 @@ OPENAI_API_KEY="your-openai-api-key-here"  # Required for trivia generation
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-publishable-key"
 CLERK_SECRET_KEY="your-clerk-secret-key"
 ```
+
+   **Need help?** See [CLERK_SETUP.md](CLERK_SETUP.md) for detailed Clerk configuration.
 
 4. Set up the database:
 
@@ -72,6 +87,17 @@ npm run dev
 ```
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+7. Test authentication:
+   - Click **Register** to create an account
+   - See [TESTING_AUTH.md](TESTING_AUTH.md) for comprehensive testing instructions
+
+## Documentation
+
+- **[QUICK_START.md](QUICK_START.md)** - Fast setup guide (15-20 minutes)
+- **[CLERK_SETUP.md](CLERK_SETUP.md)** - Detailed Clerk configuration
+- **[TESTING_AUTH.md](TESTING_AUTH.md)** - Testing instructions
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Technical details
 
 ## Database Schema
 
