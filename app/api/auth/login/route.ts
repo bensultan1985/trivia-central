@@ -1,3 +1,5 @@
+// DEPRECATED: This route is no longer used. Authentication is now handled by Clerk.
+// Kept for backwards compatibility but should not be called by the UI.
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyPassword, createSession } from '@/lib/auth'

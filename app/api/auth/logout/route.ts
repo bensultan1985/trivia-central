@@ -1,3 +1,5 @@
+// DEPRECATED: This route is no longer used. Logout is now handled by Clerk.
+// Kept for backwards compatibility but should not be called by the UI.
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { deleteSession } from '@/lib/auth'
