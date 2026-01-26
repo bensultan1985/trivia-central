@@ -593,10 +593,9 @@ async function saveTriviaQuestion(
         answerContext: triviaData.answerContext || null,
         tags: triviaData.tags || [],
         importance: triviaData.importance || 5,
-        commonKnowledgeUserDateRange:
-          normalizeCommonKnowledgeUserDateRange(
-            triviaData.commonKnowledgeUserDateRange,
-          ),
+        commonKnowledgeUserDateRange: normalizeCommonKnowledgeUserDateRange(
+          triviaData.commonKnowledgeUserDateRange,
+        ),
       },
     });
 
@@ -622,7 +621,7 @@ async function generateTriviaQuestions(
     return;
   }
 
-  const batchSizeRaw = process.env.OPENAI_BATCH_SIZE ?? "100";
+  const batchSizeRaw = process.env.OPENAI_BATCH_SIZE ?? "500";
   const batchSize = Math.max(
     1,
     Math.min(100, parseInt(batchSizeRaw, 10) || 10),

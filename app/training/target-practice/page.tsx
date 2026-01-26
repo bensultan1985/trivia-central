@@ -38,6 +38,8 @@ export default function TargetPracticePage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedAnswersByQuestionIndex, setSelectedAnswersByQuestionIndex] =
+    useState<Array<number | null>>([]);
   const [lastAnsweredQuestionIndex, setLastAnsweredQuestionIndex] = useState<
     number | null
   >(null);
@@ -70,6 +72,11 @@ export default function TargetPracticePage() {
       const response = await fetch("/api/trivia/questions?count=15");
       const data = await response.json();
       setQuestions(data.questions);
+      setSelectedAnswersByQuestionIndex(
+        Array.isArray(data.questions)
+          ? new Array(data.questions.length).fill(null)
+          : [],
+      );
       setLastAnsweredQuestionIndex(null);
       setLastSelectedAnswerIndex(null);
       setTipsOpen(true);
@@ -96,6 +103,11 @@ export default function TargetPracticePage() {
     if (selectedAnswer !== null) return; // Already answered
 
     setSelectedAnswer(answerIndex);
+    setSelectedAnswersByQuestionIndex((prev) => {
+      const next = prev.length > 0 ? [...prev] : [];
+      next[currentQuestionIndex] = answerIndex;
+      return next;
+    });
     setShowFeedback(true);
     setLastAnsweredQuestionIndex(currentQuestionIndex);
     setLastSelectedAnswerIndex(answerIndex);
@@ -144,6 +156,7 @@ export default function TargetPracticePage() {
   const handlePlayAgain = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
+    setSelectedAnswersByQuestionIndex([]);
     setLastAnsweredQuestionIndex(null);
     setLastSelectedAnswerIndex(null);
     setTipsOpen(true);
@@ -168,6 +181,108 @@ export default function TargetPracticePage() {
       intuitionStats.used > 0
         ? Math.round((intuitionStats.correct / intuitionStats.used) * 100)
         : null;
+
+    const items = questions.map((q, index) => {
+      const selectedIndex = selectedAnswersByQuestionIndex[index];
+      const selected =
+        selectedIndex != null ? (q.answers[selectedIndex] ?? null) : null;
+      const isCorrect = selected?.isCorrect ?? false;
+
+      const borderClass = isCorrect ? "border-green-500" : "border-red-500";
+      const badgeClass = isCorrect
+        ? "bg-green-600 text-white"
+        : "bg-red-600 text-white";
+      const badgeText = isCorrect ? "✓" : "✕";
+
+      return (
+        <div
+          key={q.id}
+          className={`relative rounded-lg border-2 ${borderClass} bg-white dark:bg-gray-800 shadow-lg p-6`}
+        >
+          <div
+            className={`absolute left-4 top-4 h-7 w-7 rounded-full flex items-center justify-center text-sm font-bold ${badgeClass}`}
+            aria-label={isCorrect ? "Correct" : "Incorrect"}
+            title={isCorrect ? "Correct" : "Incorrect"}
+          >
+            {badgeText}
+          </div>
+
+          <div className="pl-10">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              <strong>Category:</strong> {q.category} ·{" "}
+              <strong>Difficulty:</strong> {q.difficulty}
+            </div>
+
+            <div className="mt-3 text-base font-bold text-gray-800 dark:text-gray-100">
+              {q.question}
+            </div>
+
+            {q.questionContext && (
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                <span className="font-bold">More about this topic:</span>{" "}
+                {q.questionContext}
+              </div>
+            )}
+
+            <div className="mt-4 space-y-3">
+              {q.answers.map((a, idx) => {
+                const hasContext =
+                  typeof a.context === "string" && a.context.trim().length > 0;
+                const showRow = hasContext || a.isCorrect || a.isDistractor;
+                if (!showRow) return null;
+
+                const isUserSelection = selectedIndex === idx;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`rounded-md p-3 ${
+                      isUserSelection
+                        ? "bg-blue-50 dark:bg-blue-950/30"
+                        : "bg-transparent"
+                    }`}
+                  >
+                    {a.isCorrect ? (
+                      <div className="text-gray-800 dark:text-gray-100">
+                        <span className="font-bold text-green-600">
+                          Correct
+                        </span>{" "}
+                        {a.text}
+                      </div>
+                    ) : (
+                      <div className="text-gray-800 dark:text-gray-100 flex items-start gap-2">
+                        <div>
+                          <span className="font-bold text-orange-600 ">
+                            Incorrect
+                          </span>{" "}
+                          {a.text}
+                        </div>
+                        {a.isDistractor && (
+                          <span className="relative group inline-flex">
+                            <span className="cursor-help text-xs font-bold text-yellow-600 dark:text-yellow-400">
+                              distractor
+                            </span>
+                            <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
+                              Wrong answer that sounds plausible.
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {hasContext && (
+                      <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="font-bold">Context:</span> {a.context}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    });
 
     return (
       <div className="p-8">
@@ -233,6 +348,8 @@ export default function TargetPracticePage() {
                     } (${intuitionStats.correct} correct).`}
               </div>
             </div>
+
+            <div className="space-y-4 mb-8">{items}</div>
 
             <div className="text-center">
               <button
