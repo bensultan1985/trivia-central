@@ -593,10 +593,9 @@ async function saveTriviaQuestion(
         answerContext: triviaData.answerContext || null,
         tags: triviaData.tags || [],
         importance: triviaData.importance || 5,
-        commonKnowledgeUserDateRange:
-          normalizeCommonKnowledgeUserDateRange(
-            triviaData.commonKnowledgeUserDateRange,
-          ),
+        commonKnowledgeUserDateRange: normalizeCommonKnowledgeUserDateRange(
+          triviaData.commonKnowledgeUserDateRange,
+        ),
       },
     });
 
@@ -611,7 +610,7 @@ async function saveTriviaQuestion(
  * Main function to generate trivia questions
  */
 async function generateTriviaQuestions(
-  iterations: number = 100,
+  iterations: number = 500,
   options: GenerationOptions = { includeDistractors: false },
 ): Promise<void> {
   const openaiApiKey = getOpenAiApiKey();

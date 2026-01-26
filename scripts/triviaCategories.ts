@@ -2471,6 +2471,14 @@ export const triviaCategories = {
         "branches of government",
         "**",
       ],
+      law: ["federal laws", "state laws"],
+      politics: [
+        "political parties",
+        "elections",
+        "landmark legislation",
+        "supreme court history",
+        "**",
+      ],
     },
     mythology: {
       greek: ["gods", "heroes", "**"],
@@ -2540,6 +2548,36 @@ export const triviaCategories = {
       meteorology: ["weather", "atmosphere", "storms", "**"],
     },
   },
+  humanities: {
+    psychology: {
+      "psychological-theories": ["cognitive", "behavioral", "**"],
+      "famous-psychologists": [
+        "Sigmund Freud",
+        "Carl Jung",
+        "B.F. Skinner",
+        "Jean Piaget",
+        "**",
+      ],
+      "mental-health": ["disorders", "therapies", "**"],
+    },
+    philosophy: {
+      "philosophical-branches": ["ethics", "metaphysics", "epistemology", "**"],
+      "famous-philosophers": [
+        "Socrates",
+        "Plato",
+        "Aristotle",
+        "Immanuel Kant",
+        "Friedrich Nietzsche",
+        "**",
+      ],
+      "philosophical-movements": [
+        "existentialism",
+        "utilitarianism",
+        "stoicism",
+        "**",
+      ],
+    },
+  },
   technology: {
     inventions: ["**"],
     inventors: ["**"],
@@ -2551,6 +2589,7 @@ export const triviaCategories = {
     toys: ["**"],
     household: ["**"],
     industrial: ["**"],
+    "apps-and-software": ["**"],
   },
   literature: {
     "classic-literature": {
@@ -2682,6 +2721,15 @@ export const triviaCategories = {
     ],
     events: ["dog shows", "conventions", "festivals", "**"],
   },
+  finance: [
+    "stock market",
+    "cryptocurrency",
+    "currency",
+    "US mint",
+    "history",
+    "terms",
+    "**",
+  ],
   nature: {
     animals: ["mammals", "birds", "reptiles", "amphibians", "insects", "**"],
     plants: ["flowers", "trees", "herbs", "fungi", "**"],
@@ -2704,6 +2752,9 @@ export const triviaCategories = {
       "skateboarding",
       "surfing",
       "yoga",
+      "hunting",
+      "makeup artistry",
+      "martial arts",
       "**",
     ],
     languages: ["Spanish", "French", "Mandarin", "German", "**"],
