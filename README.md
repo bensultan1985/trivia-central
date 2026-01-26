@@ -4,7 +4,7 @@ A game show and trivia training app for people who want to win.
 
 ## Features
 
-- **User Authentication**: Secure register/login system with JWT session tokens
+- **User Authentication**: Secure authentication powered by Clerk with support for email, username/password, phone number, Google, and X (Twitter)
 - **Responsive Design**: Mobile-friendly with collapsible navigation
 - **Training Modes**: Three different training types to improve your trivia skills
   - ⚡ Speed Training: Rapid-fire questions for quick thinking
@@ -16,7 +16,7 @@ A game show and trivia training app for people who want to win.
 - **Framework**: Next.js 16 with TypeScript
 - **Database**: Prisma ORM with PostgreSQL
 - **Styling**: Tailwind CSS (v4)
-- **Authentication**: bcrypt + JWT tokens
+- **Authentication**: Clerk (email, username/password, phone, Google, X)
 
 ## Getting Started
 
@@ -49,8 +49,11 @@ npm install
 
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/trivia_train"
-JWT_SECRET="your-secure-secret-key-here"
 OPENAI_API_KEY="your-openai-api-key-here"  # Required for trivia generation
+
+# Clerk authentication keys (get these from https://clerk.com)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-publishable-key"
+CLERK_SECRET_KEY="your-clerk-secret-key"
 ```
 
 4. Set up the database:
@@ -82,20 +85,19 @@ The app includes models for:
 ```
 trivia-train/
 ├── app/                      # Next.js App Router pages
-│   ├── api/auth/            # Authentication API routes
-│   ├── login/               # Login page
-│   ├── register/            # Registration page
+│   ├── api/                 # API routes
+│   ├── sign-in/             # Clerk sign-in page
+│   ├── sign-up/             # Clerk sign-up page
 │   ├── training/            # Training mode pages
 │   └── page.tsx             # Home page
 ├── components/              # React components
 │   ├── Header.tsx           # App header with user info
 │   └── Sidebar.tsx          # Collapsible navigation
 ├── lib/                     # Utility functions
-│   ├── auth.ts              # Authentication helpers
 │   └── prisma.ts            # Prisma client
 ├── prisma/                  # Database schema
 │   └── schema.prisma        # Prisma models
-└── public/                  # Static assets
+└── middleware.ts            # Clerk middleware
 ```
 
 ## Development

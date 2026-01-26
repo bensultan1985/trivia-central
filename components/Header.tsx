@@ -1,60 +1,44 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { UserButton, useUser, SignInButton } from "@clerk/nextjs";
+import Link from "next/link";
 
-interface HeaderProps {
-  user?: {
-    username: string;
-    email: string;
-  } | null;
-}
-
-export default function Header({ user }: HeaderProps) {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/login");
-      router.refresh();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
+export default function Header() {
+  const { isSignedIn, user } = useUser();
 
   return (
     <header className="sticky top-0 z-50 border-b border-blue-900/10 bg-white text-blue-500 shadow-lg">
-      <div className="flex items-center justify-between px-6 py-">
+      <div className="flex items-center justify-between px-6 py-4">
         <h1 className="text-2xl font-bold tracking-tight">Trivia Central</h1>
 
         <div className="flex items-center gap-4">
-          {user ? (
+          {isSignedIn ? (
             <>
-              <span className="text-sm text-white/90">
-                Welcome, {user.username}!
+              <span className="text-sm text-gray-700">
+                Welcome, {user.firstName || user.username}!
               </span>
-              <button
-                onClick={handleLogout}
-                className="rounded-md bg-white/10 px-4 py-2 text-sm font-semiboldtext-blue-500 
-                ring-1 ring-white/15 transition-colors hover:bg-white/15"
-              >
-                Logout
-              </button>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10",
+                  },
+                }}
+              />
             </>
           ) : (
             <div className="flex gap-2">
-              <a
-                href="/login"
-                className="rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-blue-500 ring-1 ring-white/15 transition-colors hover:bg-white/15"
-              >
-                Login
-              </a>
-              <a
-                href="/register"
-                className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-blue-500 transition-colors hover:bg-white/90"
+              <SignInButton mode="modal">
+                <button className="rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-blue-500 ring-1 ring-blue-500/50 transition-colors hover:bg-blue-50">
+                  Login
+                </button>
+              </SignInButton>
+              <Link
+                href="/sign-up"
+                className="rounded-md bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
               >
                 Register
-              </a>
+              </Link>
             </div>
           )}
         </div>
