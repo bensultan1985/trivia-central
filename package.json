@@ -4,8 +4,12 @@
   "description": "A game show and trivia training app for people who want to win.",
   "main": "index.js",
   "scripts": {
+    "predev": "prisma generate",
     "dev": "next dev",
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate",
     "build": "next build",
+    "prestart": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "generate-trivia": "npx tsx scripts/generateTrivia.ts",

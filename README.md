@@ -74,9 +74,10 @@ CLERK_SECRET_KEY="your-clerk-secret-key"
 CLERK_WEBHOOK_SECRET="your-clerk-webhook-secret"  # Required for database sync
 ```
 
-   **Need help?** 
-   - See [CLERK_SETUP.md](CLERK_SETUP.md) for detailed Clerk configuration
-   - See [WEBHOOK_SETUP.md](WEBHOOK_SETUP.md) for webhook setup to sync users to database
+**Need help?**
+
+- See [CLERK_SETUP.md](CLERK_SETUP.md) for detailed Clerk configuration
+- See [WEBHOOK_SETUP.md](WEBHOOK_SETUP.md) for webhook setup to sync users to database
 
 4. Set up the database:
 
@@ -145,11 +146,20 @@ trivia-train/
 - `npm run generate-trivia` - Generate trivia questions using AI (see [scripts/README.md](scripts/README.md))
 - `npx prisma studio` - Open Prisma Studio to view/edit data
 
+## Webhook / Tunnel Sanity Check
+
+If Clerk webhooks behave inconsistently (e.g., tunnel points at an old dev server), hit:
+
+- `GET /api/health`
+
+It returns the Prisma Client version plus schema hashes (`repoSchemaSha256` and `generatedSchemaSha256`) so you can confirm you’re hitting the expected running instance.
+
 ## Trivia Question Generator
 
 The app includes an AI-powered trivia question generator that can seed the database with high-quality trivia questions. See [scripts/README.md](scripts/README.md) for detailed usage instructions.
 
 Quick start:
+
 ```bash
 # Set up your OpenAI API key in .env
 OPENAI_API_KEY=your_api_key
