@@ -6,6 +6,7 @@ A game show and trivia training app for people who want to win.
 
 - **User Authentication**: Secure authentication powered by Clerk with support for email, username/password, phone number, Google, and X (Twitter)
   - ⚠️ **Note:** Authentication methods are configured in the Clerk Dashboard, not in code. See [QUICK_START.md](QUICK_START.md) for setup instructions.
+  - 💾 **User Data Storage**: Clerk webhooks automatically sync user data to your Postgres database. See [WEBHOOK_SETUP.md](WEBHOOK_SETUP.md) for configuration.
 - **Responsive Design**: Mobile-friendly with collapsible navigation
 - **Training Modes**: Three different training types to improve your trivia skills
   - ⚡ Speed Training: Rapid-fire questions for quick thinking
@@ -70,9 +71,12 @@ OPENAI_API_KEY="your-openai-api-key-here"  # Required for trivia generation
 # Clerk authentication keys (get these from https://clerk.com)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-publishable-key"
 CLERK_SECRET_KEY="your-clerk-secret-key"
+CLERK_WEBHOOK_SECRET="your-clerk-webhook-secret"  # Required for database sync
 ```
 
-   **Need help?** See [CLERK_SETUP.md](CLERK_SETUP.md) for detailed Clerk configuration.
+   **Need help?** 
+   - See [CLERK_SETUP.md](CLERK_SETUP.md) for detailed Clerk configuration
+   - See [WEBHOOK_SETUP.md](WEBHOOK_SETUP.md) for webhook setup to sync users to database
 
 4. Set up the database:
 
@@ -97,6 +101,7 @@ npm run dev
 
 - **[QUICK_START.md](QUICK_START.md)** - Fast setup guide (15-20 minutes)
 - **[CLERK_SETUP.md](CLERK_SETUP.md)** - Detailed Clerk configuration
+- **[WEBHOOK_SETUP.md](WEBHOOK_SETUP.md)** - Webhook setup to sync users to database
 - **[TESTING_AUTH.md](TESTING_AUTH.md)** - Testing instructions
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Technical details
 
@@ -104,8 +109,8 @@ npm run dev
 
 The app includes models for:
 
-- **User**: User accounts with email, username, and encrypted passwords
-- **Session**: Authentication session management
+- **User**: User accounts with Clerk integration (clerkUserId, email, username, firstName, lastName, photoUrl, phoneNumber)
+- **Session**: Authentication session management (legacy)
 - **TriviaQuestion**: Questions with multiple choice answers and categories
 - **TrainingSession**: Track user training progress and scores
 
@@ -115,6 +120,9 @@ The app includes models for:
 trivia-train/
 ├── app/                      # Next.js App Router pages
 │   ├── api/                 # API routes
+│   │   ├── auth/            # Legacy auth routes (deprecated)
+│   │   ├── trivia/          # Trivia API endpoints
+│   │   └── webhooks/        # Clerk webhook handler
 │   ├── sign-in/             # Clerk sign-in page
 │   ├── sign-up/             # Clerk sign-up page
 │   ├── training/            # Training mode pages
