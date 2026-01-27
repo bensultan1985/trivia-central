@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { currentUser } from "@clerk/nextjs/server";
 
 // Mock questions for testing when database is not available
 const mockQuestions = [
@@ -235,15 +236,60 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const count = parseInt(searchParams.get("count") || "15");
 
+    // Check if user is logged in and get their preferences
+    const user = await currentUser();
+    let answeredQuestionIds: string[] = [];
+    
+    if (user) {
+      try {
+        // Get user preferences
+        const preferences = await prisma.userPreferences.findUnique({
+          where: { clerkUserId: user.id },
+        });
+
+        // If skipRepeats is enabled (or no preference set, default is true), get answered questions
+        if (!preferences || preferences.skipRepeats) {
+          const answeredQuestions = await prisma.questionHistory.findMany({
+            where: { clerkUserId: user.id },
+            select: { questionId: true },
+          });
+          answeredQuestionIds = answeredQuestions.map((q) => q.questionId);
+        }
+      } catch (prefError) {
+        console.warn("Error fetching preferences:", prefError);
+        // Continue without filtering if there's an error
+      }
+    }
+
     let questions;
 
     try {
       // Try to get random questions from the database
-      questions = await prisma.$queryRaw<any[]>`
-        SELECT * FROM "TriviaQuestion"
-        ORDER BY RANDOM()
-        LIMIT ${count}
-      `;
+      if (answeredQuestionIds.length > 0) {
+        // Exclude already answered questions - use two-step approach
+        // First get all available questions, then randomly select
+        const allQuestions = await prisma.triviaQuestion.findMany({
+          where: {
+            id: {
+              notIn: answeredQuestionIds,
+            },
+          },
+        });
+        
+        // Fisher-Yates shuffle algorithm for proper randomization
+        const shuffled = [...allQuestions];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        questions = shuffled.slice(0, count);
+      } else {
+        questions = await prisma.$queryRaw<any[]>`
+          SELECT * FROM "TriviaQuestion"
+          ORDER BY RANDOM()
+          LIMIT ${count}
+        `;
+      }
 
       // If no questions in database, use mock data
       if (!questions || questions.length === 0) {

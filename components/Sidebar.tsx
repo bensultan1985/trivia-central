@@ -14,6 +14,7 @@ export default function Sidebar() {
     { href: "/training/speed", label: "Speed Training", icon: "⚡" },
     { href: "/training/accuracy", label: "Accuracy Training", icon: "✓" },
     { href: "/training/category", label: "Category Training", icon: "📚" },
+    { href: "/history", label: "Question History", icon: "📖" },
   ];
 
   return (

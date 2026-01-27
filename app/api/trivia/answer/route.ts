@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { currentUser } from "@clerk/nextjs/server";
 
 type Body = {
   questionId?: string;
@@ -43,6 +44,20 @@ export async function POST(request: Request) {
       },
       select: { id: true },
     });
+
+    // Save to user's history if logged in
+    const user = await currentUser();
+    if (user) {
+      const isCorrect = choiceKey === 1; // choiceKey 1 is always correct answer
+      await prisma.questionHistory.create({
+        data: {
+          clerkUserId: user.id,
+          questionId,
+          choiceKey: choiceKey as number,
+          isCorrect,
+        },
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

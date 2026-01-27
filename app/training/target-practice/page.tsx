@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 
 interface Answer {
   text: string;
@@ -35,6 +36,7 @@ interface IntuitionStats {
 }
 
 export default function TargetPracticePage() {
+  const { isSignedIn, isLoaded } = useUser();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -48,6 +50,8 @@ export default function TargetPracticePage() {
   >(null);
   const [tipsOpen, setTipsOpen] = useState(true);
   const [totalGuessActive, setTotalGuessActive] = useState(false);
+  const [skipRepeats, setSkipRepeats] = useState(true); // Default to true
+  const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [gameStats, setGameStats] = useState<GameStats>({
     correct: 0,
     incorrect: 0,
@@ -63,8 +67,41 @@ export default function TargetPracticePage() {
   const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      fetchPreferences();
+    }
     fetchQuestions();
-  }, []);
+  }, [isLoaded, isSignedIn]);
+
+  const fetchPreferences = async () => {
+    try {
+      const response = await fetch("/api/user/preferences");
+      if (response.ok) {
+        const data = await response.json();
+        setSkipRepeats(data.skipRepeats);
+      }
+    } catch (error) {
+      console.warn("Error fetching preferences:", error);
+    }
+  };
+
+  const updateSkipRepeats = async (value: boolean) => {
+    setSkipRepeats(value);
+    if (!isSignedIn) return;
+
+    try {
+      setLoadingPreferences(true);
+      await fetch("/api/user/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skipRepeats: value }),
+      });
+    } catch (error) {
+      console.warn("Error updating preferences:", error);
+    } finally {
+      setLoadingPreferences(false);
+    }
+  };
 
   const fetchQuestions = async () => {
     try {
@@ -409,6 +446,27 @@ export default function TargetPracticePage() {
             </div>
           </div>
         </div>
+
+        {/* Settings Panel */}
+        {isSignedIn && (
+          <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={skipRepeats}
+                onChange={(e) => updateSkipRepeats(e.target.checked)}
+                disabled={loadingPreferences}
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-gray-700 dark:text-gray-300">
+                Do not repeat past trivia{" "}
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  (only show questions you haven't answered yet)
+                </span>
+              </span>
+            </label>
+          </div>
+        )}
 
         {/* Main Content - 3 Panel Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
