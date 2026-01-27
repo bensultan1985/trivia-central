@@ -5,11 +5,10 @@ import { type ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import {
-  IconBolt,
   IconBook,
-  IconCheck,
-  IconGrid,
-  IconHome,
+  IconDashboard,
+  IconGameBuilder,
+  IconHostGame,
   IconTarget,
 } from "@/components/icons";
 
@@ -17,25 +16,54 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
-  const navItems: Array<{ href: string; label: string; icon: ReactNode }> = [
-    { href: "/", label: "Home", icon: <IconHome /> },
+  const navItems: Array<
+    | { type: "header"; label: string }
+    | { type: "link"; href: string; label: string; icon: ReactNode }
+  > = [
     {
+      type: "link",
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: <IconDashboard />,
+    },
+    { type: "header", label: "Contestant" },
+    // { href: "/", label: "Home", icon: <IconHome /> },
+    {
+      type: "link",
       href: "/training/target-practice",
       label: "Target Practice",
       icon: <IconTarget />,
     },
-    { href: "/training/speed", label: "Speed Training", icon: <IconBolt /> },
+    // { href: "/training/speed", label: "Speed Training", icon: <IconBolt /> },
+    // {
+    //   href: "/training/accuracy",
+    //   label: "Accuracy Training",
+    //   icon: <IconCheck />,
+    // },
+    // {
+    //   href: "/training/category",
+    //   label: "Category Training",
+    //   icon: <IconGrid />,
+    // },
     {
-      href: "/training/accuracy",
-      label: "Accuracy Training",
-      icon: <IconCheck />,
+      type: "link",
+      href: "/history",
+      label: "Question History",
+      icon: <IconBook />,
+    },
+    { type: "header", label: "Host" },
+    {
+      type: "link",
+      href: "/host-game",
+      label: "Host Game",
+      icon: <IconHostGame />,
     },
     {
-      href: "/training/category",
-      label: "Category Training",
-      icon: <IconGrid />,
+      type: "link",
+      href: "/game-builder",
+      label: "Game Builder",
+      icon: <IconGameBuilder />,
     },
-    { href: "/history", label: "Question History", icon: <IconBook /> },
   ];
 
   return (
@@ -82,11 +110,22 @@ export default function Sidebar() {
           <nav className="flex-1 p-4">
             <ul className="space-y-2">
               {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-label={item.label}
-                    className={`
+                <li
+                  key={
+                    item.type === "header" ? `header:${item.label}` : item.href
+                  }
+                >
+                  {item.type === "header" ? (
+                    isCollapsed ? null : (
+                      <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {item.label}
+                      </div>
+                    )
+                  ) : (
+                    <Link
+                      href={item.href}
+                      aria-label={item.label}
+                      className={`
                       flex items-center gap-3 p-3 rounded-lg transition-colors
                       ${
                         pathname === item.href
@@ -95,10 +134,11 @@ export default function Sidebar() {
                       }
                       ${isCollapsed ? "justify-center" : ""}
                     `}
-                  >
-                    <span className="shrink-0">{item.icon}</span>
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </Link>
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

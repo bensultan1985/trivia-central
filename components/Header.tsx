@@ -9,7 +9,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-blue-900/10 bg-white text-blue-500 shadow-lg">
       <div className="flex items-center justify-between px-6 py-2">
-        <h1 className="text-2xl font-bold tracking-tight">Trivia Central</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          <Link href={isSignedIn ? "/dashboard" : "/"}>Trivia Central</Link>
+        </h1>
 
         <div className="flex items-center gap-4">
           {isSignedIn ? (

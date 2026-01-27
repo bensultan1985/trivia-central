@@ -1,10 +1,15 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { IconBolt, IconCheck, IconGrid, IconTarget } from "@/components/icons";
 
 export default async function HomePage() {
   const user = await currentUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="p-8">
@@ -18,41 +23,20 @@ export default async function HomePage() {
           <h2 className="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-200">
             Train Like a Champion
           </h2>
-          {user ? (
-            <>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Welcome,{" "}
-                <span className="font-bold">
-                  {user.firstName ||
-                    user.username ||
-                    user.emailAddresses[0]?.emailAddress ||
-                    "User"}
-                </span>
-                ! Get ready to sharpen your trivia skills and dominate your next
-                game show.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                Choose a training mode from the sidebar to get started.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Jump into training right away — no login required.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                Want to save progress later?{" "}
-                <Link href="/sign-in" className="font-semibold underline">
-                  Log in
-                </Link>{" "}
-                or{" "}
-                <Link href="/sign-up" className="font-semibold underline">
-                  create an account
-                </Link>
-                .
-              </p>
-            </>
-          )}
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Jump into training right away — no login required.
+          </p>
+          <p className="text-gray-600 dark:text-gray-300">
+            Want to save progress later?{" "}
+            <Link href="/sign-in" className="font-semibold underline">
+              Log in
+            </Link>{" "}
+            or{" "}
+            <Link href="/sign-up" className="font-semibold underline">
+              create an account
+            </Link>
+            .
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
