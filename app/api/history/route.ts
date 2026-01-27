@@ -19,37 +19,50 @@ export async function GET(request: Request) {
 
     const skip = (page - 1) * limit;
 
-    // Get history with question details
-    const historyQuery = {
+    // First, get all history for the user
+    const allHistory = await prisma.questionHistory.findMany({
       where: {
         clerkUserId: user.id,
       },
-      skip,
-      take: limit,
       orderBy: {
         answeredAt: "desc" as const,
       },
+    });
+
+    // Get all question IDs
+    const questionIds = allHistory.map((h) => h.questionId);
+
+    // Build search filter for questions
+    let questionWhere: any = {
+      id: { in: questionIds },
     };
 
-    const [history, totalCount] = await Promise.all([
-      prisma.questionHistory.findMany(historyQuery),
-      prisma.questionHistory.count({
-        where: { clerkUserId: user.id },
-      }),
-    ]);
+    if (search) {
+      const searchFilter = {
+        OR: [
+          { question: { contains: search, mode: "insensitive" as const } },
+          { category: { contains: search, mode: "insensitive" as const } },
+          { correctAnswer: { contains: search, mode: "insensitive" as const } },
+        ],
+      };
+      questionWhere = { ...questionWhere, ...searchFilter };
+    }
 
-    // Get question details for all history items
-    const questionIds = history.map((h) => h.questionId);
+    // Get questions that match the search criteria
     const questions = await prisma.triviaQuestion.findMany({
-      where: {
-        id: { in: questionIds },
-      },
+      where: questionWhere,
     });
 
     const questionMap = new Map(questions.map((q) => [q.id, q]));
 
-    // Combine history with question details and apply search filter
-    let items = history.map((h) => {
+    // Filter history to only include items with matching questions
+    const filteredHistory = allHistory.filter((h) => questionMap.has(h.questionId));
+
+    // Apply pagination to filtered results
+    const paginatedHistory = filteredHistory.slice(skip, skip + limit);
+
+    // Combine history with question details
+    const items = paginatedHistory.map((h) => {
       const question = questionMap.get(h.questionId);
       if (!question) return null;
 
@@ -76,15 +89,7 @@ export async function GET(request: Request) {
       };
     }).filter((item): item is NonNullable<typeof item> => item !== null);
 
-    // Apply search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      items = items.filter((item) => 
-        item.question.toLowerCase().includes(searchLower) ||
-        item.category.toLowerCase().includes(searchLower) ||
-        item.correctAnswer.toLowerCase().includes(searchLower)
-      );
-    }
+    const totalCount = filteredHistory.length;
 
     return NextResponse.json({
       items,

@@ -276,8 +276,12 @@ export async function GET(request: Request) {
           },
         });
         
-        // Shuffle and take the requested count
-        const shuffled = allQuestions.sort(() => Math.random() - 0.5);
+        // Fisher-Yates shuffle algorithm for proper randomization
+        const shuffled = [...allQuestions];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
         questions = shuffled.slice(0, count);
       } else {
         questions = await prisma.$queryRaw<any[]>`
