@@ -27,6 +27,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Check if user has a password (legacy users only)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'This account uses Clerk authentication. Please sign in through the sign-in page.' },
+        { status: 401 }
+      )
+    }
+    
     // Verify password
     const isValid = await verifyPassword(password, user.password)
     
