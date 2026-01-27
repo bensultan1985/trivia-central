@@ -1,20 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
+
+import {
+  IconBolt,
+  IconBook,
+  IconCheck,
+  IconGrid,
+  IconHome,
+  IconTarget,
+} from "@/components/icons";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
-  const navItems = [
-    { href: "/", label: "Home", icon: "🏠" },
-    { href: "/training/target-practice", label: "Target Practice", icon: "🎯" },
-    { href: "/training/speed", label: "Speed Training", icon: "⚡" },
-    { href: "/training/accuracy", label: "Accuracy Training", icon: "✓" },
-    { href: "/training/category", label: "Category Training", icon: "📚" },
-    { href: "/history", label: "Question History", icon: "📖" },
+  const navItems: Array<{ href: string; label: string; icon: ReactNode }> = [
+    { href: "/", label: "Home", icon: <IconHome /> },
+    {
+      href: "/training/target-practice",
+      label: "Target Practice",
+      icon: <IconTarget />,
+    },
+    { href: "/training/speed", label: "Speed Training", icon: <IconBolt /> },
+    {
+      href: "/training/accuracy",
+      label: "Accuracy Training",
+      icon: <IconCheck />,
+    },
+    {
+      href: "/training/category",
+      label: "Category Training",
+      icon: <IconGrid />,
+    },
+    { href: "/history", label: "Question History", icon: <IconBook /> },
   ];
 
   return (
@@ -64,6 +85,7 @@ export default function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    aria-label={item.label}
                     className={`
                       flex items-center gap-3 p-3 rounded-lg transition-colors
                       ${
@@ -74,7 +96,7 @@ export default function Sidebar() {
                       ${isCollapsed ? "justify-center" : ""}
                     `}
                   >
-                    <span className="text-xl">{item.icon}</span>
+                    <span className="shrink-0">{item.icon}</span>
                     {!isCollapsed && <span>{item.label}</span>}
                   </Link>
                 </li>

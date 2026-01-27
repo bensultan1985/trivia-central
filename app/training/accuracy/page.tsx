@@ -1,10 +1,14 @@
+import { IconCheck } from "@/components/icons";
+
 export default async function AccuracyTrainingPage() {
   return (
     <div className="p-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
           <div className="mb-4 flex items-center gap-4">
-            <span className="text-6xl">🎯</span>
+            <span className="shrink-0">
+              <IconCheck className="h-16 w-16" />
+            </span>
             <div>
               <h1 className="text-4xl font-bold">Accuracy Training</h1>
               <p className="mt-2 text-white/90">

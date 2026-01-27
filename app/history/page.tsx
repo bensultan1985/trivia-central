@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { IconBook, IconCheck, IconX } from "@/components/icons";
+
 type SortOption = "newest" | "oldest" | "correct" | "incorrect";
 
 interface HistoryItem {
@@ -184,7 +186,9 @@ export default function HistoryPage() {
         <div className="mb-6 rounded-lg bg-blue-500 p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <span className="text-5xl">📚</span>
+              <span className="shrink-0">
+                <IconBook className="h-12 w-12" />
+              </span>
               <div>
                 <h1 className="text-3xl font-bold">Question History</h1>
                 <p className="text-white/90">
@@ -288,7 +292,11 @@ export default function HistoryPage() {
                 const badgeClass = item.isCorrect
                   ? "bg-green-600 text-white"
                   : "bg-red-600 text-white";
-                const badgeText = item.isCorrect ? "✓" : "✕";
+                const badgeIcon = item.isCorrect ? (
+                  <IconCheck className="h-4 w-4" />
+                ) : (
+                  <IconX className="h-4 w-4" />
+                );
 
                 // Determine which answer was selected
                 const selectedAnswer =
@@ -338,7 +346,7 @@ export default function HistoryPage() {
                       aria-label={item.isCorrect ? "Correct" : "Incorrect"}
                       title={item.isCorrect ? "Correct" : "Incorrect"}
                     >
-                      {badgeText}
+                      {badgeIcon}
                     </div>
 
                     <button

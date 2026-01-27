@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 
+import { IconCheck, IconTarget, IconX } from "@/components/icons";
+
 interface Answer {
   text: string;
   isCorrect: boolean;
@@ -229,7 +231,11 @@ export default function TargetPracticePage() {
       const badgeClass = isCorrect
         ? "bg-green-600 text-white"
         : "bg-red-600 text-white";
-      const badgeText = isCorrect ? "✓" : "✕";
+      const badgeIcon = isCorrect ? (
+        <IconCheck className="h-4 w-4" />
+      ) : (
+        <IconX className="h-4 w-4" />
+      );
 
       return (
         <div
@@ -241,7 +247,7 @@ export default function TargetPracticePage() {
             aria-label={isCorrect ? "Correct" : "Incorrect"}
             title={isCorrect ? "Correct" : "Incorrect"}
           >
-            {badgeText}
+            {badgeIcon}
           </div>
 
           <div className="pl-10">
@@ -326,7 +332,9 @@ export default function TargetPracticePage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
             <div className="flex items-center gap-4 mb-4">
-              <span className="text-6xl">🎯</span>
+              <span className="shrink-0">
+                <IconTarget className="h-16 w-16" />
+              </span>
               <div>
                 <h1 className="text-4xl font-bold">Game Complete!</h1>
                 <p className="mt-2 text-white/90">
@@ -430,7 +438,9 @@ export default function TargetPracticePage() {
         <div className="mb-6 rounded-lg bg-blue-500 p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <span className="text-5xl">🎯</span>
+              <span className="shrink-0">
+                <IconTarget className="h-12 w-12" />
+              </span>
               <div>
                 <h1 className="text-3xl font-bold">Target Practice</h1>
                 <p className="text-white/90">

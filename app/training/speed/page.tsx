@@ -1,10 +1,14 @@
+import { IconBolt } from "@/components/icons";
+
 export default async function SpeedTrainingPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-6xl">⚡</span>
+            <span className="shrink-0">
+              <IconBolt className="h-16 w-16" />
+            </span>
             <div>
               <h1 className="text-4xl font-bold">Speed Training</h1>
               <p className="mt-2 text-white/90">

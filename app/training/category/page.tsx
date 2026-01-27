@@ -1,10 +1,14 @@
+import { IconGrid } from "@/components/icons";
+
 export default async function CategoryTrainingPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 rounded-lg bg-blue-500 p-8 text-white shadow-lg">
           <div className="flex items-center gap-4 mb-2">
-            <span className="text-6xl">📚</span>
+            <span className="shrink-0">
+              <IconGrid className="h-16 w-16" />
+            </span>
             <div>
               <h1 className="text-4xl font-bold">Category Training</h1>
               <p className="mt-2 text-white/90">

@@ -8,14 +8,19 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-blue-900/10 bg-white text-blue-500 shadow-lg">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-6 py-2">
         <h1 className="text-2xl font-bold tracking-tight">Trivia Central</h1>
 
         <div className="flex items-center gap-4">
           {isSignedIn ? (
             <>
               <span className="text-sm text-gray-700">
-                Welcome, {user.firstName || user.username || user.emailAddresses[0]?.emailAddress || "User"}!
+                Welcome,{" "}
+                {user.firstName ||
+                  user.username ||
+                  user.emailAddresses[0]?.emailAddress ||
+                  "User"}
+                !
               </span>
               <UserButton
                 afterSignOutUrl="/"
