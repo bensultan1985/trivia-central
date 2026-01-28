@@ -9,6 +9,8 @@ import {
   IconDashboard,
   IconGameBuilder,
   IconHostGame,
+  IconStrategyGuides,
+  IconStudyGuides,
   IconTarget,
 } from "@/components/icons";
 
@@ -33,6 +35,18 @@ export default function Sidebar() {
       href: "/training/target-practice",
       label: "Target Practice",
       icon: <IconTarget />,
+    },
+    {
+      type: "link",
+      href: "/strategy-guides",
+      label: "Strategy Guides",
+      icon: <IconStrategyGuides />,
+    },
+    {
+      type: "link",
+      href: "/study-guides",
+      label: "Study Guides",
+      icon: <IconStudyGuides />,
     },
     // { href: "/training/speed", label: "Speed Training", icon: <IconBolt /> },
     // {

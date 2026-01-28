@@ -4,10 +4,10 @@
   "description": "A game show and trivia training app for people who want to win.",
   "main": "index.js",
   "scripts": {
-    "predev": "prisma generate",
+    "predev": "node scripts/generateStrategyGuidesIndex.mjs && prisma generate",
     "dev": "next dev",
-    "postinstall": "prisma generate",
-    "prebuild": "prisma generate",
+    "postinstall": "node scripts/generateStrategyGuidesIndex.mjs && prisma generate",
+    "prebuild": "node scripts/generateStrategyGuidesIndex.mjs && prisma generate",
     "build": "next build",
     "prestart": "prisma generate",
     "start": "next start",
