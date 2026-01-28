@@ -264,3 +264,85 @@ export function IconHostGame(props: IconProps) {
     </svg>
   );
 }
+
+export function IconStrategyGuides(props: IconProps) {
+  const { className = "h-6 w-6", ...rest } = props;
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...rest}
+    >
+      {/* Big O (bottom-left) */}
+      <circle cx="7" cy="17" r="4.6" strokeWidth={2} />
+
+      {/* Big X (top-right) */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M14 4l7 7m0-7l-7 7"
+      />
+    </svg>
+  );
+}
+
+export function IconStrategyGuidesAlt(props: IconProps) {
+  const { className = "h-6 w-6", ...rest } = props;
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...rest}
+    >
+      {/* X (destination) */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 5l4 4m0-4l-4 4"
+      />
+      {/* Simple semicircle route */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 400C60.5 -10 -13.5 20 7.6 10.4"
+      />
+      {/* Arrow head pointing toward the X (not overlapping it) */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10.6 8.4l-1.8.9m1.8-.9l-.6 2.0"
+      />
+    </svg>
+  );
+}
+
+export function IconStudyGuides(props: IconProps) {
+  const { className = "h-6 w-6", ...rest } = props;
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...rest}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 6.25v13m0-13C10.83 5.48 9.25 5 7.5 5S4.17 5.48 3 6.25v13C4.17 18.48 5.75 18 7.5 18s3.33.48 4.5 1.25m0-13C13.17 5.48 14.75 5 16.5 5c1.75 0 3.33.48 4.5 1.25v13c-1.17-.77-2.75-1.25-4.5-1.25s-3.33.48-4.5 1.25"
+      />
+    </svg>
+  );
+}
