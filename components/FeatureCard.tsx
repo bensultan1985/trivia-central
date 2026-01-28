@@ -23,6 +23,7 @@ export default function FeatureCard({
   return (
     <Link
       href={href}
+      aria-label={title}
       className={`block ${fullWidth ? "col-span-full" : ""}`}
     >
       <div

@@ -77,11 +77,15 @@ export default async function HomePage() {
 
           {/* Target Practice - Prominent Section */}
           <div className="mb-12">
-            <Link href="/training/target-practice" className="block">
+            <Link
+              href="/training/target-practice"
+              aria-label="Navigate to Target Practice training mode"
+              className="block"
+            >
               <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-2xl p-8 md:p-12 text-white transition-all hover:scale-[1.02] hover:shadow-3xl border-4 border-blue-400">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="shrink-0">
-                    <IconTarget className="h-24 w-24 md:h-32 md:w-32 animate-pulse" />
+                    <IconTarget className="h-24 w-24 md:h-32 md:w-32 motion-safe:animate-pulse" />
                   </div>
                   <div className="text-center md:text-left">
                     <div className="inline-block bg-yellow-400 text-blue-900 px-4 py-1 rounded-full text-sm font-bold mb-3">
@@ -109,7 +113,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
               🚀 Explore Features
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <FeatureCard
                 href="/strategy-guides"
                 title="Strategy Guides"
