@@ -27,7 +27,7 @@ export default function FeatureCard({
       className={`block ${fullWidth ? "col-span-full" : ""}`}
     >
       <div
-        className={`rounded-lg shadow-lg p-6 text-white transition-all hover:scale-[1.02] hover:shadow-xl ${colorClasses}`}
+        className={`rounded-lg shadow-lg p-6 text-white transition-all motion-safe:hover:scale-[1.02] hover:shadow-xl ${colorClasses}`}
       >
         <div className="flex items-center gap-4">
           <div className="shrink-0">

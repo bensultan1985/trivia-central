@@ -362,7 +362,13 @@ export function IconMegaphone(props: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
-        d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 1.512 6.82l1.914-5.7A2 2 0 0 1 5.317.255h9.131a2 2 0 0 1 1.892 1.365l1.914 5.7a4.001 4.001 0 0 1-3.925 6.863"
+        d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5.5 13.5C4 13 2.5 11.5 2.5 9s1.5-4.5 3-5C7 3.5 8.5 3 11 3v16c-2.5 0-4-.5-5.5-1"
       />
     </svg>
   );

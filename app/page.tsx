@@ -82,7 +82,7 @@ export default async function HomePage() {
               aria-label="Navigate to Target Practice training mode"
               className="block"
             >
-              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-2xl p-8 md:p-12 text-white transition-all hover:scale-[1.02] hover:shadow-3xl border-4 border-blue-400">
+              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-2xl p-8 md:p-12 text-white transition-all motion-safe:hover:scale-[1.02] hover:shadow-3xl border-4 border-blue-400">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="shrink-0">
                     <IconTarget className="h-24 w-24 md:h-32 md:w-32 motion-safe:animate-pulse" />
