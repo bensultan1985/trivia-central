@@ -22,7 +22,13 @@ export default function Sidebar() {
 
   const navItems: Array<
     | { type: "header"; label: string }
-    | { type: "link"; href: string; label: string; icon: ReactNode; requireAuth?: boolean }
+    | {
+        type: "link";
+        href: string;
+        label: string;
+        icon: ReactNode;
+        requireAuth?: boolean;
+      }
   > = [
     {
       type: "link",
@@ -122,7 +128,7 @@ export default function Sidebar() {
             <div
               className={`font-bold text-xl ${isCollapsed ? "text-center" : ""}`}
             >
-              {isCollapsed ? "TT" : "Trivia Train"}
+              {isCollapsed ? "TC" : "Trivia Central"}
             </div>
           </div>
 
@@ -138,15 +144,17 @@ export default function Sidebar() {
                   return true;
                 })
                 .map((item) => (
-                <li
-                  key={
-                    item.type === "header" ? `header:${item.label}` : item.href
-                  }
-                >
-                  {item.type === "header" ? (
-                    isCollapsed ? null : (
-                      <div
-                        className={`px-3 pt-2
+                  <li
+                    key={
+                      item.type === "header"
+                        ? `header:${item.label}`
+                        : item.href
+                    }
+                  >
+                    {item.type === "header" ? (
+                      isCollapsed ? null : (
+                        <div
+                          className={`px-3 pt-2
                           mb-3 text-xs font-semibold uppercase tracking-wide ${
                             item.label === "Host"
                               ? "text-orange-400"
@@ -154,15 +162,15 @@ export default function Sidebar() {
                                 ? "text-blue-500"
                                 : "text-gray-500"
                           }`}
-                      >
-                        {item.label}
-                      </div>
-                    )
-                  ) : (
-                    <Link
-                      href={item.href}
-                      aria-label={item.label}
-                      className={`
+                        >
+                          {item.label}
+                        </div>
+                      )
+                    ) : (
+                      <Link
+                        href={item.href}
+                        aria-label={item.label}
+                        className={`
                       flex items-center gap-3 p-3 rounded-lg transition-colors
                       ${
                         pathname === item.href
@@ -175,13 +183,13 @@ export default function Sidebar() {
                       }
                       ${isCollapsed ? "justify-center" : ""}
                     `}
-                    >
-                      <span className="shrink-0">{item.icon}</span>
-                      {!isCollapsed && <span>{item.label}</span>}
-                    </Link>
-                  )}
-                </li>
-              ))}
+                      >
+                        <span className="shrink-0">{item.icon}</span>
+                        {!isCollapsed && <span>{item.label}</span>}
+                      </Link>
+                    )}
+                  </li>
+                ))}
             </ul>
           </nav>
 

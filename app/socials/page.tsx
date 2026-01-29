@@ -1,26 +1,51 @@
 export default async function SocialsPage() {
   const socialLinks = [
-    {
-      name: "Instagram",
-      url: "https://www.instagram.com",
-      icon: "📷",
-      description: "Follow us on Instagram for behind-the-scenes content and trivia tips",
-      color: "from-purple-500 to-pink-500"
-    },
+    // {
+    //   name: "Instagram",
+    //   url: "https://www.instagram.com",
+    //   icon: "📷",
+    //   description:
+    //     "Follow us on Instagram for behind-the-scenes content and trivia tips",
+    //   color: "from-purple-500 to-pink-500",
+    // },
     {
       name: "X (Twitter)",
       url: "https://www.x.com",
-      icon: "𝕏",
-      description: "Join the conversation and get daily trivia challenges",
-      color: "from-slate-700 to-slate-900"
+      // icon: "𝕏",
+      description: "Join the conversation and get daily trivia challenges.",
+      color: "from-slate-700 to-slate-100",
+    },
+    {
+      name: "Patreon",
+      url: "https://www.instagram.com",
+      icon: "",
+      description:
+        "Want to keep Trivia Central growing? Support us on Patreon.",
+      color: "from-amber-500 to-amber-100",
     },
     {
       name: "YouTube",
       url: "https://www.youtube.com",
-      icon: "▶️",
-      description: "Watch strategy videos and game show analysis",
-      color: "from-red-500 to-red-700"
-    }
+      // icon: "▶️",
+      description:
+        "Coming soon: Watch trivia strategy videos. Or, watch our flagship series, Made In.",
+      color: "from-red-500 to-red-100",
+    },
+    {
+      name: "Rumble",
+      url: "https://www.youtube.com",
+      // icon: "▶️",
+      description:
+        "Coming soon: Watch trivia strategy videos. Or, watch our flagship series, Made In.",
+      color: "from-green-400 to-green-100",
+    },
+    {
+      name: "Truth Social",
+      url: "https://www.youtube.com",
+      // icon: "▶️",
+      description: "Follow us on Truth Social.",
+      color: "from-blue-400 to-blue-100",
+    },
   ];
 
   return (
@@ -30,7 +55,8 @@ export default async function SocialsPage() {
           Connect With Us
         </h1>
         <p className="mb-8 text-slate-600 dark:text-slate-300">
-          Follow Trivia Train on social media for tips, updates, and community content.
+          Trivia Central is brought to you by VeriContent Studios. Follow us on
+          social media for tips, updates, and community content.
         </p>
         <div className="space-y-4">
           {socialLinks.map((social) => (
@@ -43,7 +69,9 @@ export default async function SocialsPage() {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${social.color} text-3xl text-white shadow-md`}
+                  className={`flex h-6 w-6 items-center justify-center
+                     rounded-sm
+                     bg-gradient-to-br ${social.color} text-3xl text-white shadow-md`}
                 >
                   {social.icon}
                 </div>

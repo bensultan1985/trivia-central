@@ -10,16 +10,14 @@ export default async function TermsPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               Last Updated: January 2026
             </p>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               1. Introduction
             </h2>
             <p className="text-slate-600 dark:text-slate-300 mb-4">
-              Welcome to Trivia Train. This Privacy Policy explains how we
+              Welcome to Trivia Central. This Privacy Policy explains how we
               collect, use, disclose, and safeguard your information when you
               use our application. Please read this privacy policy carefully.
             </p>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               2. Information We Collect
             </h2>
@@ -41,7 +39,6 @@ export default async function TermsPage() {
                 operating system
               </li>
             </ul>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               3. Use of Your Information
             </h2>
@@ -59,7 +56,6 @@ export default async function TermsPage() {
                 Communicate with you for customer service and support purposes
               </li>
             </ul>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               4. Disclosure of Your Information
             </h2>
@@ -71,12 +67,9 @@ export default async function TermsPage() {
                 With service providers who help us operate our application
               </li>
               <li>To comply with legal obligations</li>
-              <li>
-                To protect and defend our rights or property
-              </li>
+              <li>To protect and defend our rights or property</li>
               <li>With your consent or at your direction</li>
             </ul>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               5. Data Security
             </h2>
@@ -86,7 +79,6 @@ export default async function TermsPage() {
               reasonable steps to secure the information you provide to us, no
               security measures are perfect or impenetrable.
             </p>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               6. Your Privacy Rights
             </h2>
@@ -100,17 +92,20 @@ export default async function TermsPage() {
               <li>The right to request deletion of your data</li>
               <li>The right to object to processing of your data</li>
             </ul>
-
+            <br></br>
+            To make such a request, please contact us through our contact page.
+            BS Games, a subsidiary of VeriContent Studios is based 100% in the
+            United States and is a proud supporter of individual digital privacy
+            rights. We will happily assist you in exercising your rights. 🇺🇸
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               7. Terms of Service
             </h2>
             <p className="text-slate-600 dark:text-slate-300 mb-4">
-              By accessing and using Trivia Train, you agree to be bound by
+              By accessing and using Trivia Central, you agree to be bound by
               these Terms of Service. You agree to use the application only for
               lawful purposes and in a way that does not infringe the rights of
               others.
             </p>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               8. Changes to This Policy
             </h2>
@@ -119,7 +114,6 @@ export default async function TermsPage() {
               notify you of any changes by posting the new Privacy Policy on
               this page and updating the "Last Updated" date.
             </p>
-
             <h2 className="text-2xl font-semibold mt-6 mb-4 text-slate-900 dark:text-slate-50">
               9. Contact Us
             </h2>

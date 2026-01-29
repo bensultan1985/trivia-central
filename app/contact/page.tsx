@@ -8,7 +8,9 @@ export default function ContactPage() {
     email: "",
     messageContent: "",
   });
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,17 +34,19 @@ export default function ContactPage() {
 
       setStatus("success");
       setFormData({ name: "", email: "", messageContent: "" });
-      
+
       // Reset success message after 5 seconds
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       setStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
+      setErrorMessage(
+        error instanceof Error ? error.message : "An error occurred",
+      );
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -58,8 +62,8 @@ export default function ContactPage() {
         </h1>
         <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
           <p className="mb-6 text-slate-600 dark:text-slate-300">
-            Have a question, suggestion, or just want to say hello? We'd love
-            to hear from you!
+            Question, suggestion, praise? We'd love to hear from you! Fill out
+            the form below and we'll get back to you as soon as possible.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

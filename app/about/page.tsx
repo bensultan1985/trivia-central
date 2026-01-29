@@ -3,7 +3,7 @@ export default async function AboutPage() {
     <div className="p-8">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-6 text-3xl font-bold text-slate-900 dark:text-slate-50">
-          About Trivia Train
+          About Trivia Central
         </h1>
         <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
           <div className="space-y-6">
@@ -12,11 +12,12 @@ export default async function AboutPage() {
                 Our Mission
               </h2>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                Trivia Train is designed to help aspiring game show contestants
-                and trivia enthusiasts prepare, train, and succeed. Whether
-                you're preparing for your first audition or looking to sharpen
-                your skills, our platform provides the tools and training you
-                need to compete at the highest level.
+                Trivia Central is designed to help aspiring game show
+                contestants and trivia enthusiasts prepare, train, and succeed.
+                Whether you're preparing for your first game show audition (yes,
+                you have to audition in most cases) or looking to sharpen your
+                skills, our platform provides the tools and training you need to
+                compete at the highest level.
               </p>
             </section>
 
@@ -25,7 +26,7 @@ export default async function AboutPage() {
                 About the Creator
               </h2>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                Trivia Train was created by a two-time game show winner with a
+                Trivia Central was created by a two-time game show winner with a
                 passion for competitive trivia and game strategy. Through
                 personal experience competing on national television, the
                 creator developed insights into what it takes to succeed on game
@@ -68,8 +69,8 @@ export default async function AboutPage() {
               </h2>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                 Whether you're a casual trivia fan or a serious competitor,
-                Trivia Train is here to help you reach your goals. Train like a
-                champion, and maybe we'll see you on TV!
+                Trivia Central is here to help you reach your goals. Train like
+                a champion, and maybe we'll see you on TV!
               </p>
             </section>
           </div>
