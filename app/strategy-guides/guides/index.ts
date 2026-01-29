@@ -2,12 +2,8 @@
 // Do not edit by hand.
 
 import { commonKnowledge } from "./commonKnowledge";
-import { jeopardy } from "./jeopardy";
 import { dealOrNoDeal } from "./dealOrNoDeal";
+import { jeopardy } from "./jeopardy";
 
-export const strategyGuides = [
-  jeopardy,
-  dealOrNoDeal,
-  commonKnowledge,
-] as const;
+export const strategyGuides = [commonKnowledge, dealOrNoDeal, jeopardy] as const;
 export type StrategyGuide = (typeof strategyGuides)[number];

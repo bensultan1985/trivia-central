@@ -346,3 +346,30 @@ export function IconStudyGuides(props: IconProps) {
     </svg>
   );
 }
+
+export function IconMegaphone(props: IconProps) {
+  const { className = "h-6 w-6", ...rest } = props;
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...rest}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5.5 13.5C4 13 2.5 11.5 2.5 9s1.5-4.5 3-5C7 3.5 8.5 3 11 3v16c-2.5 0-4-.5-5.5-1"
+      />
+    </svg>
+  );
+}
