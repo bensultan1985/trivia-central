@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 import {
   IconBook,
@@ -17,10 +18,11 @@ import {
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { isSignedIn, isLoaded } = useUser();
 
   const navItems: Array<
     | { type: "header"; label: string }
-    | { type: "link"; href: string; label: string; icon: ReactNode }
+    | { type: "link"; href: string; label: string; icon: ReactNode; requireAuth?: boolean }
   > = [
     {
       type: "link",
@@ -64,6 +66,7 @@ export default function Sidebar() {
       href: "/history",
       label: "Question History",
       icon: <IconBook />,
+      requireAuth: true,
     },
     { type: "header", label: "Host" },
     {
@@ -126,7 +129,15 @@ export default function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 p-4">
             <ul className="space-y-2">
-              {navItems.map((item) => (
+              {navItems
+                .filter((item) => {
+                  // Filter out items that require authentication if user is not signed in
+                  if (item.type === "link" && item.requireAuth) {
+                    return isLoaded && isSignedIn;
+                  }
+                  return true;
+                })
+                .map((item) => (
                 <li
                   key={
                     item.type === "header" ? `header:${item.label}` : item.href

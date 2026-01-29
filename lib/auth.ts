@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { currentUser } from "@clerk/nextjs/server";
 
 function getJwtSecret(): string | null {
   return process.env.JWT_SECRET ?? null;
@@ -83,4 +84,20 @@ export async function deleteSession(token: string) {
   await prisma.session.delete({
     where: { token },
   });
+}
+
+/**
+ * Checks if the current user is authenticated via Clerk.
+ * This function verifies that the user has a valid Clerk session.
+ * 
+ * @returns The authenticated user object if authenticated, null otherwise
+ */
+export async function isAuthenticated() {
+  try {
+    const user = await currentUser();
+    return user;
+  } catch (error) {
+    console.error("Error checking authentication:", error);
+    return null;
+  }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { isAuthenticated } from "@/lib/auth";
 
 type SortOption = "newest" | "oldest" | "correct" | "incorrect";
 
@@ -40,7 +40,7 @@ function isSortOption(value: string | null): value is SortOption {
 
 export async function GET(request: Request) {
   try {
-    const user = await currentUser();
+    const user = await isAuthenticated();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -186,7 +186,7 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await currentUser();
+    const user = await isAuthenticated();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
