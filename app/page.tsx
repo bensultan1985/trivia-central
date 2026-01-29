@@ -25,11 +25,20 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Welcome to Trivia Train! 🎯
+            <h1
+              //   className="text-5xl md:text-6xl
+              // font-black mb-4 bg-gradient-to-r
+              // from-blue-600 via-purple-600 to-pink-600
+              // bg-clip-text text-transparent"
+              className="text-5xl md:text-6xl
+            font-black mb-4 bg-gradient-to-r
+            from-blue-500 via-plue-500 to-blue-500
+            bg-clip-text text-transparent"
+            >
+              Welcome to Trivia Central
             </h1>
             <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 font-medium">
-              Train Like a Champion, Compete Like a Pro
+              Your secret weapon for game show prep.
             </p>
             <div className="mt-6">
               <p className="text-gray-600 dark:text-gray-400">
@@ -54,26 +63,26 @@ export default async function HomePage() {
           </div>
 
           {/* Announcements Section */}
-          <div className="mb-12">
+          {/* <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100 flex items-center gap-3">
-              📢 What's New
+              📢 Announcements
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
               <AnnouncementCard
-                title="New Target Practice Mode!"
-                message="Sharpen your skills with our brand new interactive 15-question challenge. Track your accuracy and improve over time!"
-                date="Jan 2026"
+                title="Target Practice"
+                message="Quick rounds with tips and analytics"
+                // date="Jan 2026"
               />
               <AnnouncementCard
-                title="Strategy Guides Available"
-                message="Master game show strategies with our comprehensive guides covering buzzing techniques, wagering, and more!"
+                title="Strategy Guides"
+                message="Learn about specific strategies for popular shows like Jeopardy!"
               />
               <AnnouncementCard
-                title="Coming Soon: Game Builder"
-                message="Create custom trivia games with your own questions and categories. Perfect for parties and study groups!"
+                title=" Builder (coming soon)"
+                message="Create custom trivia games. Perfect for classrooms and parties!"
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Target Practice - Prominent Section */}
           <div className="mb-12">
@@ -82,7 +91,7 @@ export default async function HomePage() {
               aria-label="Navigate to Target Practice training mode"
               className="block"
             >
-              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 shadow-2xl p-8 md:p-12 text-white transition-all motion-safe:hover:scale-[1.02] hover:shadow-3xl border-4 border-blue-400">
+              <div className="rounded-2xl bg-gradient-to-r from-blue-500 via-blue-500 to-blue-400 shadow-2xl p-8 md:p-12 text-white transition-all motion-safe:hover:scale-[1.02] hover:shadow-3xl border-4 border-blue-400">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="shrink-0">
                     <IconTarget className="h-24 w-24 md:h-32 md:w-32 motion-safe:animate-pulse" />
@@ -92,15 +101,14 @@ export default async function HomePage() {
                       ⭐ FEATURED
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black mb-3">
-                      🎯 Target Practice
+                      Target Practice
                     </h3>
                     <p className="text-lg md:text-xl opacity-95 mb-4">
-                      Master multiple choice questions with our interactive
-                      15-question game. Track your progress and improve your
-                      accuracy!
+                      Master multiple choice questions with our free interactive
+                      trainer. Track your progress and improve your accuracy!
                     </p>
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full font-bold text-lg">
-                      Start Training Now →
+                      Play Now →
                     </div>
                   </div>
                 </div>
@@ -111,13 +119,13 @@ export default async function HomePage() {
           {/* Feature Grid */}
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-              🚀 Explore Features
+              Hot Features
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <FeatureCard
                 href="/strategy-guides"
                 title="Strategy Guides"
-                description="Learn winning strategies for game shows like Jeopardy!, buzzing techniques, wagering strategies, and more!"
+                description="Learn winning strategies for games like Jeopardy!; buzzing techniques, wagering strategies, and more!"
                 icon={IconStrategyGuides}
                 colorClasses="bg-gradient-to-br from-green-500 to-emerald-600"
                 iconSize="h-12 w-12"
@@ -126,13 +134,13 @@ export default async function HomePage() {
               <FeatureCard
                 href="/study-guides"
                 title="Study Guides"
-                description="Comprehensive study materials across history, geography, science, and more. Premium feature for registered users."
+                description="Easy, broad overviews on history, pop culture, and more. Based on real past game show questions."
                 icon={IconStudyGuides}
                 colorClasses="bg-gradient-to-br from-purple-500 to-pink-600"
                 iconSize="h-12 w-12"
               />
 
-              <FeatureCard
+              {/* <FeatureCard
                 href="/game-builder"
                 title="Game Builder"
                 description="Create custom trivia games with your own questions, categories, and rules. Perfect for hosting events!"
@@ -148,7 +156,7 @@ export default async function HomePage() {
                 icon={IconHostGame}
                 colorClasses="bg-gradient-to-br from-yellow-500 to-orange-500"
                 iconSize="h-12 w-12"
-              />
+              /> */}
             </div>
           </div>
 
@@ -158,10 +166,10 @@ export default async function HomePage() {
               💡 Pro Tip
             </h3>
             <p className="text-base text-indigo-900/90 dark:text-indigo-100/90 leading-relaxed">
-              Consistent practice is key! Try to train for at least 15 minutes
-              each day to see real improvement in your trivia skills. Mix
-              different training modes to keep things interesting and challenge
-              yourself across various categories.
+              Registered users can toggle whether or not they want to see
+              repeat-question in Target Practice. "Repeat" mode helps solidify
+              concepts. "Non-repeat" mode exposes you to a wider variety of
+              questions.
             </p>
           </div>
         </div>
