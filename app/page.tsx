@@ -59,7 +59,7 @@ export default async function HomePage() {
                 </Link>{" "}
                 or{" "}
                 <Link
-                  href="/sign-up"
+                  href="/sign-in?returnTo=%2Fdashboard"
                   className="font-bold text-purple-600 hover:text-purple-700 underline decoration-2"
                 >
                   create an account

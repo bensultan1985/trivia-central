@@ -168,7 +168,7 @@ export default function HistoryPage() {
               Please sign in to view your question history.
             </p>
             <Link
-              href="/sign-in"
+              href="/sign-in?returnTo=%2Fhistory"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
             >
               Sign In

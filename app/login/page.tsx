@@ -7,8 +7,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to new Clerk sign-in page
-    router.replace("/sign-in");
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get("returnTo") ?? "/dashboard";
+    router.replace(`/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
   }, [router]);
 
   return (

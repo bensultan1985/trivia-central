@@ -35,7 +35,7 @@ export default function Header() {
             </>
           ) : (
             <div className="flex gap-2">
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                 <button className="rounded-md bg-white/10 px-4 py-2 text-sm font-semibold text-blue-500 ring-1 ring-blue-500/50 transition-colors hover:bg-blue-50">
                   Login
                 </button>
