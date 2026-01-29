@@ -31,16 +31,23 @@ export default async function HomePage() {
               // from-blue-600 via-purple-600 to-pink-600
               // bg-clip-text text-transparent"
               className="text-5xl md:text-6xl
-            font-black mb-4 bg-gradient-to-r
+            font-black mb-5 bg-gradient-to-r
             from-blue-500 via-plue-500 to-blue-500
             bg-clip-text text-transparent"
             >
               Welcome to Trivia Central
             </h1>
             <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 font-medium">
-              Your secret weapon for game show prep.
+              Your{" "}
+              <span className="text-orange-500 text-md font-semibold">
+                SECRET WEAPON
+              </span>{" "}
+              for{" "}
+              <span className="text-emerald-500 text-md font-semibold">
+                GAME SHOW PREP.
+              </span>
             </p>
-            <div className="mt-6">
+            <div className="mt-8">
               <p className="text-gray-600 dark:text-gray-400">
                 Jump into training right away — no login required. Want to save
                 progress?{" "}
