@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
-  title: "Trivia Train - Train Like a Champion",
+  title: "Trivia Central - Train Like a Champion",
   description:
     "A game show and trivia training app for people who want to win.",
 };
