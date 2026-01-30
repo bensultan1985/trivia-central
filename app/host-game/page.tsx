@@ -52,6 +52,23 @@ export default function HostGamePage() {
     }
   }, [showMyGamesModal, isSignedIn]);
 
+  // Handle Escape key for modals
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showMyGamesModal) {
+          setShowMyGamesModal(false);
+        }
+        if (showCustomGameModal) {
+          setShowCustomGameModal(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [showMyGamesModal, showCustomGameModal]);
+
   const fetchGames = async () => {
     setLoadingGames(true);
     try {
@@ -59,9 +76,13 @@ export default function HostGamePage() {
       if (response.ok) {
         const data = await response.json();
         setSavedGames(data.games || []);
+      } else {
+        console.error("Failed to fetch games");
+        alert("Failed to load games. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching games:", error);
+      alert("Error loading games. Please check your connection.");
     } finally {
       setLoadingGames(false);
     }
@@ -76,8 +97,12 @@ export default function HostGamePage() {
     await startGame(customQuestionCount);
   };
 
-  const startSavedGame = async (game: Game) => {
+  const startSavedGame = (game: Game) => {
     setShowMyGamesModal(false);
+    if (!game.questions || game.questions.length === 0) {
+      alert("This game has no questions. Please select a different game.");
+      return;
+    }
     setQuestions(game.questions);
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
@@ -91,15 +116,23 @@ export default function HostGamePage() {
       const response = await fetch(`/api/trivia/questions?count=${count}`);
       if (response.ok) {
         const data = await response.json();
-        setQuestions(data.questions || []);
+        const fetchedQuestions = data.questions || [];
+        if (fetchedQuestions.length === 0) {
+          alert("No questions available. Please try again later.");
+          return;
+        }
+        setQuestions(fetchedQuestions);
         setCurrentQuestionIndex(0);
         setSelectedAnswer(null);
         setShowAnswer(false);
         setScore(0);
         setGameMode("playing");
+      } else {
+        alert("Failed to load questions. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching questions:", error);
+      alert("Error loading questions. Please check your connection.");
     }
   };
 
@@ -109,6 +142,10 @@ export default function HostGamePage() {
   };
 
   const handleShowAnswer = () => {
+    if (selectedAnswer === null) {
+      return; // Defensive check
+    }
+    
     const currentQuestion = questions[currentQuestionIndex];
     let isCorrect = false;
     
@@ -323,6 +360,7 @@ export default function HostGamePage() {
                   <button
                     onClick={decrementQuestionCount}
                     disabled={customQuestionCount <= 1}
+                    aria-label="Decrease question count"
                     className="w-12 h-12 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-2xl font-bold rounded-lg transition-colors"
                   >
                     ←
@@ -340,6 +378,7 @@ export default function HostGamePage() {
                   <button
                     onClick={incrementQuestionCount}
                     disabled={customQuestionCount >= 50}
+                    aria-label="Increase question count"
                     className="w-12 h-12 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white text-2xl font-bold rounded-lg transition-colors"
                   >
                     →
@@ -450,6 +489,25 @@ export default function HostGamePage() {
   // End screen
   if (gameMode === "ended") {
     const totalQuestions = questions.length;
+    if (totalQuestions === 0) {
+      // Should not happen, but handle gracefully
+      return (
+        <div className="p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800 text-center">
+              <p className="text-gray-800 dark:text-gray-100">No questions were answered.</p>
+              <button
+                onClick={returnToMenu}
+                className="mt-4 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold rounded-lg transition-colors"
+              >
+                Return to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     const percentage = Math.round((score / totalQuestions) * 100);
     const didWell = percentage >= 50;
 
