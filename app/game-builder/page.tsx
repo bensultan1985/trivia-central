@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { IconGameBuilder } from "@/components/icons";
 
 interface Question {
@@ -25,6 +26,7 @@ interface Game {
 
 export default function GameBuilderPage() {
   const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -44,6 +46,8 @@ export default function GameBuilderPage() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [runPendingActionAfterSave, setRunPendingActionAfterSave] =
+    useState(false);
   const [tempQuestionOrder, setTempQuestionOrder] = useState<Question[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [savedGames, setSavedGames] = useState<Game[]>([]);
@@ -68,6 +72,49 @@ export default function GameBuilderPage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  // Guard in-app navigation (Link clicks) when there are unsaved changes.
+  useEffect(() => {
+    const onDocumentClickCapture = (e: MouseEvent) => {
+      if (!hasUnsavedChanges) return;
+      if (e.defaultPrevented) return;
+      if (e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      if (anchor.hasAttribute("download")) return;
+
+      const rawHref = anchor.getAttribute("href");
+      if (!rawHref || rawHref.startsWith("#")) return;
+      if (rawHref.startsWith("mailto:") || rawHref.startsWith("tel:")) return;
+
+      let url: URL;
+      try {
+        url = new URL(rawHref, window.location.href);
+      } catch {
+        return;
+      }
+
+      if (url.origin !== window.location.origin) return;
+
+      const isWithinBuilder =
+        url.pathname === "/game-builder" || url.pathname.startsWith("/game-builder/");
+      if (isWithinBuilder) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const nextHref = `${url.pathname}${url.search}${url.hash}`;
+      checkUnsavedChanges(() => router.push(nextHref));
+    };
+
+    document.addEventListener("click", onDocumentClickCapture, true);
+    return () =>
+      document.removeEventListener("click", onDocumentClickCapture, true);
+  }, [hasUnsavedChanges, router]);
 
   const fetchGames = async () => {
     try {
@@ -182,28 +229,42 @@ export default function GameBuilderPage() {
     );
   };
 
+  const closeSaveModal = () => {
+    setShowSaveModal(false);
+    if (runPendingActionAfterSave) {
+      setPendingAction(null);
+      setRunPendingActionAfterSave(false);
+    }
+  };
+
+  const cancelPendingNavigation = () => {
+    setShowUnsavedModal(false);
+    setPendingAction(null);
+    setRunPendingActionAfterSave(false);
+  };
+
   const handleSave = async () => {
     if (!canSave()) {
       alert("At least one complete question is required to save");
-      return;
+      return false;
     }
 
     if (!currentGame && !gameName.trim()) {
       setShowSaveModal(true);
-      return;
+      return false;
     }
 
-    await saveGame();
+    return await saveGame();
   };
 
-  const saveGame = async () => {
+  const saveGame = async (): Promise<boolean> => {
     try {
       setIsSaving(true);
       const name = currentGame?.name || gameName.trim();
 
       if (!name) {
         alert("Game name is required");
-        return;
+        return false;
       }
 
       // Filter out incomplete questions
@@ -213,7 +274,7 @@ export default function GameBuilderPage() {
 
       if (completeQuestions.length === 0) {
         alert("At least one complete question is required");
-        return;
+        return false;
       }
 
       const payload = {
@@ -235,13 +296,23 @@ export default function GameBuilderPage() {
         setHasUnsavedChanges(false);
         setShowSaveModal(false);
         alert("Game saved successfully!");
+
+        if (runPendingActionAfterSave && pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+          setRunPendingActionAfterSave(false);
+        }
+
+        return true;
       } else {
         const error = await response.json();
         alert(`Failed to save: ${error.error}`);
+        return false;
       }
     } catch (error) {
       console.error("Error saving game:", error);
       alert("Failed to save game");
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -258,16 +329,31 @@ export default function GameBuilderPage() {
 
   const handleUnsavedSave = async () => {
     setShowUnsavedModal(false);
-    await handleSave();
-    if (pendingAction) {
-      pendingAction();
+    setRunPendingActionAfterSave(true);
+
+    if (!canSave()) {
+      alert("At least one complete question is required to save");
+      setRunPendingActionAfterSave(false);
       setPendingAction(null);
+      return;
+    }
+
+    if (!currentGame && !gameName.trim()) {
+      setShowSaveModal(true);
+      return;
+    }
+
+    const ok = await saveGame();
+    if (!ok) {
+      // Keep pending action so user can retry saving.
+      return;
     }
   };
 
   const handleUnsavedDiscard = () => {
     setShowUnsavedModal(false);
     setHasUnsavedChanges(false);
+    setRunPendingActionAfterSave(false);
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -715,7 +801,7 @@ export default function GameBuilderPage() {
         {showSaveModal && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowSaveModal(false)}
+            onClick={closeSaveModal}
           >
             <div
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full"
@@ -739,7 +825,7 @@ export default function GameBuilderPage() {
               </div>
               <div className="flex gap-3 justify-end">
                 <button
-                  onClick={() => setShowSaveModal(false)}
+                  onClick={closeSaveModal}
                   className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
                 >
                   Cancel
@@ -816,7 +902,7 @@ export default function GameBuilderPage() {
         {showUnsavedModal && (
           <div
             className="fixed inset-0 bg-stone-500/35  z-50 flex items-center justify-center p-4"
-            onClick={() => setShowUnsavedModal(false)}
+            onClick={cancelPendingNavigation}
           >
             <div
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full"
