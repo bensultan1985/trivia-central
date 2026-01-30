@@ -35,9 +35,8 @@ export default function HostGamePage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [score, setScore] = useState(0);
-  
+
   // Modals
   const [showMyGamesModal, setShowMyGamesModal] = useState(false);
   const [showCustomGameModal, setShowCustomGameModal] = useState(false);
@@ -106,7 +105,6 @@ export default function HostGamePage() {
     setQuestions(game.questions);
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
-    setShowAnswer(false);
     setScore(0);
     setGameMode("playing");
   };
@@ -124,7 +122,6 @@ export default function HostGamePage() {
         setQuestions(fetchedQuestions);
         setCurrentQuestionIndex(0);
         setSelectedAnswer(null);
-        setShowAnswer(false);
         setScore(0);
         setGameMode("playing");
       } else {
@@ -136,39 +133,25 @@ export default function HostGamePage() {
     }
   };
 
-  const handleAnswerClick = (answerIndex: number) => {
-    if (showAnswer) return;
-    setSelectedAnswer(answerIndex);
-  };
+  const handleAnswerClick = (answerKey: number) => {
+    if (selectedAnswer !== null) return; // Already answered
 
-  const handleShowAnswer = () => {
-    if (selectedAnswer === null) {
-      return; // Defensive check
-    }
-    
+    setSelectedAnswer(answerKey);
+
     const currentQuestion = questions[currentQuestionIndex];
-    let isCorrect = false;
-    
-    if (currentQuestion.answers) {
-      // Questions from API with shuffled answers
-      const selectedAnswerObj = currentQuestion.answers.find(a => a.choiceKey === selectedAnswer);
-      isCorrect = selectedAnswerObj?.isCorrect || false;
-    } else {
-      // Questions from saved games
-      isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-    }
-    
+    const answerOptions = getAnswerOptions(currentQuestion);
+    const selected = answerOptions.find((a) => a.key === answerKey);
+    const isCorrect = selected?.isCorrect ?? false;
+
     if (isCorrect) {
-      setScore(score + 1);
+      setScore((prev) => prev + 1);
     }
-    setShowAnswer(true);
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
-      setShowAnswer(false);
     } else {
       setGameMode("ended");
     }
@@ -179,7 +162,6 @@ export default function HostGamePage() {
     setQuestions([]);
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
-    setShowAnswer(false);
     setScore(0);
   };
 
@@ -206,10 +188,30 @@ export default function HostGamePage() {
     } else {
       // Saved game questions
       const options = [];
-      if (question.answer1) options.push({ text: question.answer1, key: 1, isCorrect: question.correctAnswer === 1 });
-      if (question.answer2) options.push({ text: question.answer2, key: 2, isCorrect: question.correctAnswer === 2 });
-      if (question.answer3) options.push({ text: question.answer3, key: 3, isCorrect: question.correctAnswer === 3 });
-      if (question.answer4) options.push({ text: question.answer4, key: 4, isCorrect: question.correctAnswer === 4 });
+      if (question.answer1)
+        options.push({
+          text: question.answer1,
+          key: 1,
+          isCorrect: question.correctAnswer === 1,
+        });
+      if (question.answer2)
+        options.push({
+          text: question.answer2,
+          key: 2,
+          isCorrect: question.correctAnswer === 2,
+        });
+      if (question.answer3)
+        options.push({
+          text: question.answer3,
+          key: 3,
+          isCorrect: question.correctAnswer === 3,
+        });
+      if (question.answer4)
+        options.push({
+          text: question.answer4,
+          key: 4,
+          isCorrect: question.correctAnswer === 4,
+        });
       return options;
     }
   };
@@ -227,7 +229,8 @@ export default function HostGamePage() {
               <div>
                 <h1 className="text-4xl font-bold">Host Game</h1>
                 <p className="mt-2 text-white/90">
-                  Run a live game for contestants
+                  Play a round! Great for webcasts, classrooms, and live trivia
+                  events!
                 </p>
               </div>
             </div>
@@ -237,7 +240,7 @@ export default function HostGamePage() {
             <h2 className="mb-6 text-2xl font-semibold text-gray-800 dark:text-gray-100">
               Choose a Game Mode
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Quick Start */}
               <button
@@ -245,7 +248,9 @@ export default function HostGamePage() {
                 className="p-8 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-lg transition-colors text-left"
               >
                 <h3 className="text-2xl font-bold mb-2">Quick Start</h3>
-                <p className="text-white/90">Start a 10-question game instantly</p>
+                <p className="text-white/90">
+                  Start a 10-question game instantly
+                </p>
               </button>
 
               {/* My Games */}
@@ -256,7 +261,11 @@ export default function HostGamePage() {
               >
                 <h3 className="text-2xl font-bold mb-2">My Games</h3>
                 <p className="text-white/90">
-                  {!isLoaded ? "Loading..." : !isSignedIn ? "Sign in to access your saved games" : "Load a saved game from the builder"}
+                  {!isLoaded
+                    ? "Loading..."
+                    : !isSignedIn
+                      ? "Sign in to access your saved games"
+                      : "Load a saved game from the builder"}
                 </p>
               </button>
 
@@ -266,7 +275,9 @@ export default function HostGamePage() {
                 className="p-8 bg-purple-500 hover:bg-purple-600 text-white rounded-lg shadow-lg transition-colors text-left"
               >
                 <h3 className="text-2xl font-bold mb-2">Custom Game</h3>
-                <p className="text-white/90">Choose the number of questions (1-50)</p>
+                <p className="text-white/90">
+                  Choose the number of questions (1-50)
+                </p>
               </button>
 
               {/* Millionaire Style */}
@@ -355,7 +366,7 @@ export default function HostGamePage() {
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
                   Select the number of questions for your game
                 </p>
-                
+
                 <div className="flex items-center justify-center gap-6 mb-8">
                   <button
                     onClick={decrementQuestionCount}
@@ -365,7 +376,7 @@ export default function HostGamePage() {
                   >
                     ←
                   </button>
-                  
+
                   <div className="text-center">
                     <div className="text-5xl font-bold text-gray-800 dark:text-gray-100">
                       {customQuestionCount}
@@ -374,7 +385,7 @@ export default function HostGamePage() {
                       questions
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={incrementQuestionCount}
                     disabled={customQuestionCount >= 50}
@@ -384,7 +395,7 @@ export default function HostGamePage() {
                     →
                   </button>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowCustomGameModal(false)}
@@ -411,7 +422,7 @@ export default function HostGamePage() {
   if (gameMode === "playing" && questions.length > 0) {
     const currentQuestion = questions[currentQuestionIndex];
     const answerOptions = getAnswerOptions(currentQuestion);
-    
+
     return (
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
@@ -438,23 +449,41 @@ export default function HostGamePage() {
             <div className="space-y-4 mb-8">
               {answerOptions.map((option, index) => {
                 const isSelected = selectedAnswer === option.key;
-                const showCorrect = showAnswer && option.isCorrect;
-                const showIncorrect = showAnswer && isSelected && !option.isCorrect;
-                
+                const isCorrect = option.isCorrect;
+
+                let buttonClasses =
+                  "w-full text-left p-4 rounded-lg border-2 transition-all font-medium ";
+
+                if (selectedAnswer === null) {
+                  // Before answering
+                  buttonClasses +=
+                    "border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-600";
+                } else {
+                  // After answering
+                  if (isSelected && isCorrect) {
+                    // Selected correct answer - blue/yellow theme
+                    buttonClasses +=
+                      "border-yellow-500 bg-gradient-to-r from-blue-500 to-yellow-500 text-white";
+                  } else if (isSelected && !isCorrect) {
+                    // Selected wrong answer - red
+                    buttonClasses += "border-red-500 bg-red-500 text-white";
+                  } else if (!isSelected && isCorrect) {
+                    // Not selected but correct - yellow
+                    buttonClasses +=
+                      "border-yellow-500 bg-yellow-400 text-gray-900 font-bold";
+                  } else {
+                    // Not selected and not correct
+                    buttonClasses +=
+                      "border-gray-300 bg-gray-100 dark:bg-gray-700 dark:border-gray-600 opacity-50";
+                  }
+                }
+
                 return (
                   <button
                     key={option.key}
                     onClick={() => handleAnswerClick(option.key)}
-                    disabled={showAnswer}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
-                      showCorrect
-                        ? "bg-green-100 border-green-500 text-green-900 dark:bg-green-900 dark:text-green-100"
-                        : showIncorrect
-                        ? "bg-red-100 border-red-500 text-red-900 dark:bg-red-900 dark:text-red-100"
-                        : isSelected
-                        ? "bg-blue-100 border-blue-500 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
-                        : "bg-gray-50 border-gray-300 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100"
-                    }`}
+                    disabled={selectedAnswer !== null}
+                    className={buttonClasses}
                   >
                     {option.text}
                   </button>
@@ -463,20 +492,14 @@ export default function HostGamePage() {
             </div>
 
             <div className="flex gap-4">
-              {!showAnswer ? (
-                <button
-                  onClick={handleShowAnswer}
-                  disabled={selectedAnswer === null}
-                  className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white font-bold rounded-lg transition-colors"
-                >
-                  Show Answer
-                </button>
-              ) : (
+              {selectedAnswer !== null && (
                 <button
                   onClick={handleNextQuestion}
                   className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-colors"
                 >
-                  {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish Game"}
+                  {currentQuestionIndex < questions.length - 1
+                    ? "Next Question"
+                    : "Finish Game"}
                 </button>
               )}
             </div>
@@ -495,7 +518,9 @@ export default function HostGamePage() {
         <div className="p-8">
           <div className="max-w-4xl mx-auto">
             <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800 text-center">
-              <p className="text-gray-800 dark:text-gray-100">No questions were answered.</p>
+              <p className="text-gray-800 dark:text-gray-100">
+                No questions were answered.
+              </p>
               <button
                 onClick={returnToMenu}
                 className="mt-4 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold rounded-lg transition-colors"
@@ -507,7 +532,7 @@ export default function HostGamePage() {
         </div>
       );
     }
-    
+
     const percentage = Math.round((score / totalQuestions) * 100);
     const didWell = percentage >= 50;
 
