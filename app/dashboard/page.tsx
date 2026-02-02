@@ -11,8 +11,9 @@ import DailyFunFact from "@/components/DailyFunFact";
 
 export default async function DashboardPage() {
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <div className="px-4 py-4 md:p-8 lg:p-12 lg:py-8">
+    // <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="px-4 py-1 md:px-8 md:py-1 lg:px-12 lg:py-1">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">

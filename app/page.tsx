@@ -21,8 +21,9 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <div className="px-4 py-8 md:p-8 lg:p-12">
+    // <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen  dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="px-4 py-12 md:px-8 md:py-12 lg:p-12">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">

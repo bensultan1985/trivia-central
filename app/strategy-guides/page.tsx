@@ -162,25 +162,25 @@ function renderGuide(guide: StrategyGuide) {
       {(guide.chapters ?? []).length ? (
         <div
           className="rounded-xl from bg-amber-50
-      bg-linear-to-br from-white via-amber-50 to-amber-100 px-4 py-6 shadow-lg ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10 sm:p-6"
+      bg-linear-to-br from-white via-amber-50 to-amber-100 px-4 py-6 shadow-lg ring-1 ring-black/5 dark:bg-linear-to-br dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 dark:ring-white/10 sm:p-6"
         >
           <div
             className="mb-4 border-b border-black/10 pb-2 dark:border-white/10
             p-4 rounded-lg
-          bg-blue-500"
+          bg-blue-500 dark:bg-indigo-700"
           >
             <h3 className="text-lg font-semibold text-white dark:text-gray-100">
               Chapters
             </h3>
           </div>
-          <ol className="mt-3 ml-4 space-y-2 text-md font-semibold text-blue-500 dark:text-gray-200">
+          <ol className="mt-3 ml-4 space-y-2 text-md font-semibold text-blue-500 dark:text-indigo-100">
             {(guide.chapters ?? []).map((chapter: any, idx: number) => {
               const chapterId = `chapter-${idx + 1}`;
               return (
                 <li key={idx}>
                   <a
                     href={`#${chapterId}`}
-                    className="hover:underline underline-offset-4"
+                    className="hover:underline underline-offset-4 dark:hover:text-indigo-200"
                   >
                     {chapter.chapterTitle ?? `Chapter ${idx + 1}`}
                   </a>

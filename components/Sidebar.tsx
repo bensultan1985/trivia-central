@@ -108,14 +108,14 @@ export default function Sidebar({
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white text-white transition-all duration-300 z-40
+          fixed top-0 left-0 z-40 h-full w-64 bg-white text-gray-900 transition-all duration-300 dark:bg-slate-950 dark:text-slate-100
           ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-          ${isCollapsed ? "lg:translate-x-0 lg:w-20" : "lg:translate-x-0 w-64"}
+          lg:translate-x-0 ${isCollapsed ? "lg:w-20" : "lg:w-64"}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Brand */}
-          <div className="p-4 border-b border-white/10">
+          <div className="p-4">
             <div
               className={`font-bold text-xl ${isCollapsed ? "text-center" : ""}`}
             >
@@ -150,7 +150,7 @@ export default function Sidebar({
                             item.label === "Host"
                               ? "text-orange-400"
                               : item.label === "Contestant"
-                                ? "text-blue-500"
+                                ? "text-blue-500 dark:text-indigo-300"
                                 : "text-gray-500"
                           }`}
                         >
@@ -170,8 +170,8 @@ export default function Sidebar({
                             ? "bg-orange-400 text-white shadow ring-1 ring-orange-900/20"
                             : "bg-blue-500 text-white shadow ring-1 ring-blue-900/20"
                           : isHostHref(item.href)
-                            ? "hover:bg-orange-200 hover:text-white text-black/80"
-                            : "hover:bg-blue-300 hover:text-white text-black/80"
+                            ? "text-black/80 hover:bg-orange-200 hover:text-white dark:text-orange-100/90 dark:hover:bg-orange-500/20"
+                            : "text-black/80 hover:bg-blue-300 hover:text-white dark:text-slate-200 dark:hover:bg-indigo-950 dark:hover:text-indigo-100"
                       }
                       ${isCollapsed ? "justify-center" : ""}
                     `}
@@ -186,16 +186,16 @@ export default function Sidebar({
           </nav>
 
           {/* Toggle button for desktop */}
-          <div className="p-4 border-t border-white/10 hidden lg:block">
+          <div className="hidden p-4 lg:block">
             <button
               onClick={onToggleCollapse}
-              className="w-full rounded-lg p-2 transition-colors hover:bg-white/5"
+              className="flex w-full justify-start rounded-lg p-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
               aria-label="Toggle sidebar"
             >
               <svg
-                className={`w-6 h-6 mx-auto transition-transform ${isCollapsed ? "rotate-180" : ""}`}
+                className={`h-6 w-6 transition-transform ${isCollapsed ? "rotate-180" : ""}`}
                 fill="none"
-                stroke="currentColor"
+                stroke="#D4D4D4"
                 viewBox="0 0 24 24"
               >
                 <path

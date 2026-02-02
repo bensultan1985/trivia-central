@@ -11,13 +11,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { isSignedIn, user } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-blue-900/10 bg-white text-blue-500 shadow-lg">
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2">
+    <header className="sticky top-0 z-50 border-b border-blue-900/10 bg-white text-blue-500 shadow-lg dark:border-white/10 dark:bg-slate-950 dark:text-indigo-200">
+      <div className="flex items-center justify-between px-4 py-2 sm:px-6">
         {/* Mobile menu button */}
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-md hover:bg-blue-50 transition-colors"
+            className="rounded-md p-2 transition-colors hover:bg-blue-50 dark:hover:bg-indigo-950 lg:hidden"
             aria-label="Toggle menu"
           >
             <svg
@@ -43,7 +43,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-2 sm:gap-4">
           {isSignedIn ? (
             <>
-              <span className="hidden md:block text-sm text-gray-700">
+              <span className="hidden text-sm text-gray-700 dark:text-gray-200 md:block">
                 Welcome,{" "}
                 {user.firstName ||
                   user.username ||
@@ -63,13 +63,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
           ) : (
             <div className="flex gap-2">
               <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="rounded-md bg-white/10 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-500 ring-1 ring-blue-500/50 transition-colors hover:bg-blue-50">
+                <button className="rounded-md bg-white/10 px-3 py-2 text-xs font-semibold text-blue-500 ring-1 ring-blue-500/50 transition-colors hover:bg-blue-50 dark:bg-white/5 dark:text-indigo-200 dark:ring-white/15 dark:hover:bg-indigo-950 sm:px-4 sm:text-sm">
                   Login
                 </button>
               </SignInButton>
               <Link
                 href="/sign-up"
-                className="rounded-md bg-blue-500 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white transition-colors hover:bg-blue-600"
+                className="rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-600 dark:bg-indigo-600 dark:hover:bg-indigo-500 sm:px-4 sm:text-sm"
               >
                 Register
               </Link>
