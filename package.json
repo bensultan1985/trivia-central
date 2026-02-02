@@ -1,6 +1,6 @@
 {
   "name": "trivia-train",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A game show and trivia training app for people who want to win.",
   "main": "index.js",
   "scripts": {
