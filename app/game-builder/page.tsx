@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconGameBuilder } from "@/components/icons";
+import { useAlertModal } from "@/components/AlertModalProvider";
 
 interface Question {
   id?: string;
@@ -27,6 +28,7 @@ interface Game {
 export default function GameBuilderPage() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
+  const { showAlert } = useAlertModal();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -134,7 +136,7 @@ export default function GameBuilderPage() {
 
   const addQuestion = () => {
     if (questions.length >= 50) {
-      alert("Maximum of 50 questions allowed");
+      showAlert("Maximum of 50 questions allowed");
       return;
     }
     setQuestions([
@@ -153,7 +155,7 @@ export default function GameBuilderPage() {
 
   const removeQuestion = (index: number) => {
     if (questions.length <= 1) {
-      alert("At least one question is required");
+      showAlert("At least one question is required");
       return;
     }
     setQuestions(questions.filter((_, i) => i !== index));
@@ -246,7 +248,7 @@ export default function GameBuilderPage() {
 
   const handleSave = async () => {
     if (!canSave()) {
-      alert("At least one complete question is required to save");
+      showAlert("At least one complete question is required to save");
       return false;
     }
 
@@ -264,7 +266,7 @@ export default function GameBuilderPage() {
       const name = currentGame?.name || gameName.trim();
 
       if (!name) {
-        alert("Game name is required");
+        showAlert("Game name is required");
         return false;
       }
 
@@ -274,7 +276,7 @@ export default function GameBuilderPage() {
       );
 
       if (completeQuestions.length === 0) {
-        alert("At least one complete question is required");
+        showAlert("At least one complete question is required");
         return false;
       }
 
@@ -296,7 +298,7 @@ export default function GameBuilderPage() {
         setGameName(data.game.name);
         setHasUnsavedChanges(false);
         setShowSaveModal(false);
-        alert("Game saved successfully!");
+        showAlert("Game saved successfully!");
 
         if (runPendingActionAfterSave && pendingAction) {
           pendingAction();
@@ -307,12 +309,12 @@ export default function GameBuilderPage() {
         return true;
       } else {
         const error = await response.json();
-        alert(`Failed to save: ${error.error}`);
+        showAlert(`Failed to save: ${error.error}`);
         return false;
       }
     } catch (error) {
       console.error("Error saving game:", error);
-      alert("Failed to save game");
+      showAlert("Failed to save game");
       return false;
     } finally {
       setIsSaving(false);
@@ -333,7 +335,7 @@ export default function GameBuilderPage() {
     setRunPendingActionAfterSave(true);
 
     if (!canSave()) {
-      alert("At least one complete question is required to save");
+      showAlert("At least one complete question is required to save");
       setRunPendingActionAfterSave(false);
       setPendingAction(null);
       return;
@@ -412,7 +414,7 @@ export default function GameBuilderPage() {
       }
     } catch (error) {
       console.error("Error deleting game:", error);
-      alert("Failed to delete game");
+      showAlert("Failed to delete game");
     }
   };
 

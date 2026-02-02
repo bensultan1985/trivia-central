@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
+import { AlertModalProvider } from "@/components/AlertModalProvider";
 
 export default function ClientLayout({
   children,
@@ -39,26 +40,28 @@ export default function ClientLayout({
   const effectiveSidebarCollapsed = isLgUp && isSidebarCollapsed;
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          isCollapsed={effectiveSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        />
-        <main
-          className={`flex-1 overflow-y-auto transition-all duration-300 ${
-            effectiveSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
-          }`}
-        >
-          <div className="min-h-full flex flex-col">
-            <div className="flex-1">{children}</div>
-            <Footer />
-          </div>
-        </main>
+    <AlertModalProvider>
+      <div className="flex flex-col h-screen">
+        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            isCollapsed={effectiveSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          />
+          <main
+            className={`flex-1 overflow-y-auto transition-all duration-300 ${
+              effectiveSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
+            }`}
+          >
+            <div className="min-h-full flex flex-col">
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </AlertModalProvider>
   );
 }

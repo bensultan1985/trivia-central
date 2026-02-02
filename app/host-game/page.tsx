@@ -8,6 +8,7 @@ import {
   IconHostGame,
   IconX,
 } from "@/components/icons";
+import { useAlertModal } from "@/components/AlertModalProvider";
 
 interface Question {
   id: string;
@@ -36,6 +37,7 @@ type GameMode = "menu" | "playing" | "ended";
 
 export default function HostGamePage() {
   const { isSignedIn, isLoaded } = useUser();
+  const { showAlert } = useAlertModal();
   const [gameMode, setGameMode] = useState<GameMode>("menu");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -93,11 +95,11 @@ export default function HostGamePage() {
         setSavedGames(data.games || []);
       } else {
         console.error("Failed to fetch games");
-        alert("Failed to load games. Please try again.");
+        showAlert("Failed to load games. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching games:", error);
-      alert("Error loading games. Please check your connection.");
+      showAlert("Error loading games. Please check your connection.");
     } finally {
       setLoadingGames(false);
     }
@@ -117,7 +119,7 @@ export default function HostGamePage() {
   const startSavedGame = (game: Game) => {
     setShowMyGamesModal(false);
     if (!game.questions || game.questions.length === 0) {
-      alert("This game has no questions. Please select a different game.");
+      showAlert("This game has no questions. Please select a different game.");
       return;
     }
     setBuilderGameName(game.name);
@@ -136,7 +138,7 @@ export default function HostGamePage() {
         const data = await response.json();
         const fetchedQuestions = data.questions || [];
         if (fetchedQuestions.length === 0) {
-          alert("No questions available. Please try again later.");
+          showAlert("No questions available. Please try again later.");
           return;
         }
         setQuestions(fetchedQuestions);
@@ -145,11 +147,11 @@ export default function HostGamePage() {
         setScore(0);
         setGameMode("playing");
       } else {
-        alert("Failed to load questions. Please try again.");
+        showAlert("Failed to load questions. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching questions:", error);
-      alert("Error loading questions. Please check your connection.");
+      showAlert("Error loading questions. Please check your connection.");
     }
   };
 
